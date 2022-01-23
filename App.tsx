@@ -7,6 +7,7 @@ import {
 	Text,
 	View,
 	TouchableOpacity,
+	Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {styles} from './styles.tsx';
@@ -29,18 +30,17 @@ export default class App extends Component {
 			map: {
 				'--': '+',
 				'++': '+',
-				'sin(': 'maths.sin(',
-				'cos(': 'maths.cos(',
-				'tan(': 'maths.tan(',
-				'sin-1(': 'maths.sinInv(',
-				'cos-1(': 'maths.cosInv(',
-				'tan-1(': 'maths.tanInv(',
+				'sin(': '* maths.sin(',
+				'cos(': '* maths.cos(',
+				'tan(': '* maths.tan(',
+				'sin-1(': '* maths.sinInv(',
+				'cos-1(': '* maths.cosInv(',
+				'tan-1(': '* maths.tanInv(',
 				'÷': '/',
-				'log': 'maths.log',
-				'ln': 'maths.ln',
-				'√': 'Math.sqrt',
+				'log': '* maths.log',
+				'ln': '* maths.ln',
+				'√': '* Math.sqrt',
 				'×': '* ',
-				'^': '**',
 				'e': '* Math.E * ',
 				'π': '* Math.PI * ',
 				',': '',
@@ -69,7 +69,7 @@ export default class App extends Component {
 	touch(stylesButton, stylesText, innerText, command) {
 		return (
 			<TouchableOpacity style={stylesButton} onPress={() => {
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null;
 			this.appNum(command);
 			}}>
 				<Text style={stylesText}>{innerText}</Text>
@@ -266,7 +266,8 @@ export default class App extends Component {
 					i += 3;
 				}
 			} else if (eq[i] == ')') {
-				if (!isNaN(eq[i - 1])) {
+				if (!isNaN(eq[i - 1]) &&
+				eq[i + 1] != '*') {
 					eq = eq.slice(0, i) + ') *' + eq.slice(i + 1)
 					i += 3;
 				}
@@ -274,10 +275,11 @@ export default class App extends Component {
 		}
 		if (eq.slice(-1) == '*') eq = eq.slice(0, -1)
 		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2);
-		while (eq.includes('***') || 
+		eq = eq.replace('^', '**');
+		while (eq.includes('* ***') || 
 		eq.includes('(*') ||
 		eq.includes('* /*')) {
-			eq = eq.replace('***', '**')
+			eq = eq.replace('* ***', '**')
 			eq = eq.replace('(*', '(')
 			eq = eq.replace('* /*', '/')
 		}
@@ -386,14 +388,14 @@ export default class App extends Component {
     		</View>
     		<View style={styles.row}>
     			<TouchableOpacity style={styles.span2} onPress={() => {
-    			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    			this.AC()
+    			Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null;
+    			this.AC();
     			}}>
 		  			<Text style={styles.text}>AC</Text>
     			</TouchableOpacity>
     			<TouchableOpacity style={styles.button} onPress={() => {
-    			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    			this.DEL()
+    			Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null;
+    			this.DEL();
     			}}>
     				<Text style={styles.text}>DEL</Text>
     			</TouchableOpacity>
@@ -424,7 +426,7 @@ export default class App extends Component {
 				style={[styles.span2, { borderBottomRightRadius: this.state.firstRound }]}
 				onPress={() => {
 				this.equals(this.state.current)
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+				Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null;
 				}}
 				onLongPress={() => this.showAdv()}>
     				<Text style={styles.text}>=</Text>
@@ -457,14 +459,14 @@ export default class App extends Component {
     			<TouchableOpacity style={styles.small}
     			onPress={() => {
     			this.radOrDeg()
-    			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    			Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null;
     			}}>
     				<Text style={styles.textSmall}>{trigMode}</Text>
     			</TouchableOpacity>
     			<TouchableOpacity style={[styles.small, {borderBottomRightRadius: 10}]}
 				onPress={() => {
 				this.inverse()
-				Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);	
+				Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null;	
 				}}>
     				<Text style={styles.textSmall}>Inv</Text>
     			</TouchableOpacity>
