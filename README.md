@@ -1,0 +1,3 @@
+# Calculator
+# DOESN'T CONTAIN "node_modules" FILE
+# YOU NEED TO USE "npm i" IN ORDER FOR THE MODULES TO INSTALL
