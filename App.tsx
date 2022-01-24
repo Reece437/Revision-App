@@ -8,13 +8,14 @@ import {
 	View,
 	TouchableOpacity,
 	Platform,
+	Dimensions
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {styles} from './styles.tsx';
 import * as Haptics from 'expo-haptics';
 import Maths from './maths.tsx';
 
-var trigMode = 'Deg'
+var trigMode = 'Deg';
 var maths = new Maths(trigMode)
 export default class App extends Component {
 	constructor(props) {
@@ -268,7 +269,7 @@ export default class App extends Component {
 			} else if (eq[i] == ')') {
 				if (!isNaN(eq[i - 1]) &&
 				eq[i + 1] != '*') {
-					eq = eq.slice(0, i) + ') *' + eq.slice(i + 1)
+					eq = eq.slice(0, i) + ') * ' + eq.slice(i + 1)
 					i += 3;
 				}
 			}
@@ -277,11 +278,13 @@ export default class App extends Component {
 		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2);
 		eq = eq.replace('^', '**');
 		while (eq.includes('* ***') || 
-		eq.includes('(*') ||
-		eq.includes('* /*')) {
-			eq = eq.replace('* ***', '**')
-			eq = eq.replace('(*', '(')
-			eq = eq.replace('* /*', '/')
+		eq.includes('(* ') ||
+		eq.includes('* /*') ||
+		eq.includes(') * * (')) {
+			eq = eq.replace('* ***', '**');
+			eq = eq.replace('(* ', '(');
+			eq = eq.replace('* /*', '/');
+			eq = eq.replace(') * * (', ') * (');
 		}
 		return eq;
 	}
