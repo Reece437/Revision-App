@@ -12,12 +12,13 @@ import {
 	SafeAreaView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import {styles} from './styles.tsx';
+import {Styles} from './styles.tsx';
 import * as Haptics from 'expo-haptics';
 import Maths from './maths.tsx';
 
 let trigMode = 'Deg';
 let maths = new Maths(trigMode)
+let styles = new Styles('portrait').styles;
 let orientation = Dimensions.get('screen').height >
 Dimensions.get('screen').width ? 'portrait' : 'landscape';
 export default class App extends Component {
