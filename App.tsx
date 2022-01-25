@@ -8,15 +8,18 @@ import {
 	View,
 	TouchableOpacity,
 	Platform,
-	Dimensions
+	Dimensions,
+	SafeAreaView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {styles} from './styles.tsx';
 import * as Haptics from 'expo-haptics';
 import Maths from './maths.tsx';
 
-var trigMode = 'Deg';
-var maths = new Maths(trigMode)
+let trigMode = 'Deg';
+let maths = new Maths(trigMode)
+let orientation = Dimensions.get('screen').height >
+Dimensions.get('screen').width ? 'portrait' : 'landscape';
 export default class App extends Component {
 	constructor(props) {
 		super(props);
@@ -49,9 +52,8 @@ export default class App extends Component {
 				'ANS': 'this.state.ANS'	
 			},
 			opers: [
-				'+',
-				'×', '÷',
-				'(', 'MOD'
+				'+','×', 
+				'÷','MOD'
 			],
 			inner: [
 				'log', 'ln',
@@ -76,6 +78,13 @@ export default class App extends Component {
 				<Text style={stylesText}>{innerText}</Text>
 			</TouchableOpacity>
 		);
+	}
+	checkOrientation() {
+		let height = Dimensions.get('screen').height;
+		let width = Dimensions.get('screen').width;
+		if (height > width) {
+			orientation = 'portrait';
+		} else orientation = 'landscape';
 	}
 	factorial(x: number ) : number {
 		x = parseFloat(x);
@@ -226,8 +235,7 @@ export default class App extends Component {
 		}
 		let nums: string;
 		const allow = [
-			'e','+',
-			'-','.','E'
+			'e','.','E'
 		];
 		while (eq.includes('!') || 
 		eq.includes('%')) 
@@ -378,13 +386,19 @@ export default class App extends Component {
 			}
 		}
 	}
+	componentDidMount() {
+    	this.dimensionsSubscription = Dimensions.addEventListener("change", this.checkOrientation);
+	}
+	componentWillUnmount() {
+    	this.dimensionsSubscription?.remove();
+	}
 	render() {
 		return (
 			<LinearGradient 
 			colors={['#43c6ac', '#191654']}
 			style={styles.gradient}
 			start={[0.0, 0.5]} end={[1.0, 0.5]}>
-			<View style={styles.container}>
+			<SafeAreaView style={styles.container}>
     		<View style={styles.screen}>
     			<Text style={styles.answer}>{this.state.answer}</Text>
 				<Text style={styles.current}>{this.state.current}</Text>
@@ -474,7 +488,7 @@ export default class App extends Component {
     				<Text style={styles.textSmall}>Inv</Text>
     			</TouchableOpacity>
 			</View>: null}
-			</View>
+			</SafeAreaView>
 			</LinearGradient>
 		);
 	}
