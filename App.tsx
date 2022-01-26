@@ -12,12 +12,13 @@ import {
 	SafeAreaView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import {stylePortrait as styles} from './styles.tsx';
+import {stylePortrait, styleLandscape} from './styles.tsx';
 import * as Haptics from 'expo-haptics';
 import Maths from './maths.tsx';
 
 let trigMode = 'Deg';
 let maths = new Maths(trigMode)
+let styles = stylePortrait;
 
 export default class App extends Component {
 	constructor(props) {
@@ -86,8 +87,12 @@ export default class App extends Component {
 		let width = Dimensions.get('screen').width;
 		if (height > width) {
 			this.setState({orientation: 'portrait'});
+			styles = stylePortrait;
+			this.forceUpdate();
 		} else {
 			this.setState({orientation: 'landscape'});
+			styles = styleLandscape;
+			this.forceUpdate();
 		}
 	}
 	factorial(x: string) : number {
@@ -331,6 +336,7 @@ export default class App extends Component {
 		this.setState({firstRound: this.state.firstRound == 10 ? 0 : 10})
 	}
 	ans(eq: string) : void {
+		eq = eval(eq)
 		this.setState({ANS: eq});
 		let array: string[] = this.state.ansArr;
 		array.push(this.state.current);
@@ -390,8 +396,9 @@ export default class App extends Component {
 				if (this.state.answer == '') eval(this.change(eq));
 				this.setState({current: this.state.answer});
 				this.setState({answer: ''});
-				this.ans(this.state.answer);
+				this.ans(this.change(eq));
 			} catch(err) {
+				//alert(err.message)
 				this.setState({current: 'Syntax Error'});
 				this.setState({answer: ''});
 			}
@@ -431,7 +438,16 @@ export default class App extends Component {
     			{this.touch(styles.button, styles.text, '×', '×')}
     		</View>
     		<View style={styles.row}>
-    			{this.state.orientation == 'landscape' ? this.touch(styles.small, styles.textSmall, 'log', 'log(') : null}
+    			{this.state.orientation == 'landscape' ? <Text> 
+    			{this.touch(styles.small, styles.textSmall, 'log', 'log(')}
+    			{this.touch(styles.small, styles.textSmall, 'ln', 'ln(')}
+    			{this.touch(styles.small, styles.textSmall, 'sin', 'sin(')}
+    			{this.touch(styles.small, styles.textSmall, 'cos', 'cos(')}
+    			{this.touch(styles.small, styles.textSmall, 'tan', 'tan(')}
+    			{'\n'}
+    			{this.touch(styles.small, styles.textSmall, '10^', '10^')}
+    			{this.touch(styles.small, styles.textSmall, 'e^', 'e^')}
+    			</Text>: null}
     			{this.touch(styles.button, styles.text, '1', 1)}
     			{this.touch(styles.button, styles.text, '2', 2)}
     			{this.touch(styles.button, styles.text, '3', 3)}
