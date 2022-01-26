@@ -168,7 +168,12 @@ export default class App extends Component {
 					} else break;
 				}
 				eq = eq.replace(num, this.com(num));
-				i += num.length + Math.floor(num.length / 4);
+				if (num.includes('.')) {
+					i += num.length + Math.floor(num.split('.').length / 4);
+				}
+				else {
+					i += num.length + Math.floor(num.length / 4);
+				}
 				num = '';
 			}
 		}
@@ -297,6 +302,7 @@ export default class App extends Component {
 		}
 		return eq;
 	}
+	
 	bigReplace(eq: string) : string {
 		let New: string = eq;
 		for (let value in this.state.map) {
@@ -305,6 +311,7 @@ export default class App extends Component {
 		}
 		return New;
 	}
+	
 	AC() : void {
 		this.setState({current: '', answer: ''})
 	}
