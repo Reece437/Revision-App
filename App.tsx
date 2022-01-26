@@ -12,15 +12,13 @@ import {
 	SafeAreaView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import {Styles} from './styles.tsx';
+import {stylePortrait as styles} from './styles.tsx';
 import * as Haptics from 'expo-haptics';
 import Maths from './maths.tsx';
 
 let trigMode = 'Deg';
 let maths = new Maths(trigMode)
-let styles = new Styles('portrait').styles;
-let orientation = Dimensions.get('screen').height >
-Dimensions.get('screen').width ? 'portrait' : 'landscape';
+
 export default class App extends Component {
 	constructor(props) {
 		super(props);
@@ -32,6 +30,8 @@ export default class App extends Component {
 			firstRound: 10,
 			current: '',
 			answer: '',
+			orientation: Dimensions.get('screen').height >
+			Dimensions.get('screen').width ? 'portrait' : 'landscape',
 			map: {
 				'--': '+',
 				'++': '+',
@@ -69,6 +69,7 @@ export default class App extends Component {
 				'NaN'
 			]
 		};
+		this.checkOrientation = this.checkOrientation.bind(this);
 	}
 	touch(stylesButton, stylesText, innerText, command) {
 		return (
@@ -84,11 +85,13 @@ export default class App extends Component {
 		let height = Dimensions.get('screen').height;
 		let width = Dimensions.get('screen').width;
 		if (height > width) {
-			orientation = 'portrait';
-		} else orientation = 'landscape';
+			this.setState({orientation: 'portrait'});
+		} else {
+			this.setState({orientation: 'landscape'});
+		}
 	}
-	factorial(x: number ) : number {
-		x = parseFloat(x);
+	factorial(x: string) : number {
+		x = parseFloat(x)
 		if (x > 170 || !Number.isInteger(x)) return 'undefined';
 		else if (x == 0 || x == 1) return 1;
 		let isNegative: number = 1;
@@ -396,9 +399,10 @@ export default class App extends Component {
 	}
 	componentDidMount() {
     	this.dimensionsSubscription = Dimensions.addEventListener("change", this.checkOrientation);
+		this.forceUpdate();
 	}
 	componentWillUnmount() {
-    	this.dimensionsSubscription?.remove();
+	  this.dimensionsSubscription?.remove();
 	}
 	render() {
 		return (
@@ -406,7 +410,7 @@ export default class App extends Component {
 			colors={['#43c6ac', '#191654']}
 			style={styles.gradient}
 			start={[0.0, 0.5]} end={[1.0, 0.5]}>
-			<SafeAreaView style={styles.container}>
+			<View style={styles.container}>
     		<View style={styles.screen}>
     			<Text style={styles.answer}>{this.state.answer}</Text>
 				<Text style={styles.current}>{this.state.current}</Text>
@@ -427,6 +431,7 @@ export default class App extends Component {
     			{this.touch(styles.button, styles.text, '×', '×')}
     		</View>
     		<View style={styles.row}>
+    			{this.state.orientation == 'landscape' ? this.touch(styles.small, styles.textSmall, 'log', 'log(') : null}
     			{this.touch(styles.button, styles.text, '1', 1)}
     			{this.touch(styles.button, styles.text, '2', 2)}
     			{this.touch(styles.button, styles.text, '3', 3)}
@@ -496,7 +501,7 @@ export default class App extends Component {
     				<Text style={styles.textSmall}>Inv</Text>
     			</TouchableOpacity>
 			</View>: null}
-			</SafeAreaView>
+			</View>
 			</LinearGradient>
 		);
 	}

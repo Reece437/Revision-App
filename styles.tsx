@@ -1,10 +1,5 @@
-import { StyleSheet, Platforms } from 'react-native';
-class Styles {
-	constructor(orientation) {
-		this.orientation = orientation;
-		const styles;
-	}
-	styles = StyleSheet.create({
+import { StyleSheet } from 'react-native';
+	export const stylePortrait = StyleSheet.create({
 		gradient: {
 			flex: 1
 		},
@@ -73,5 +68,3 @@ class Styles {
 			flexDirection: 'row'
 		}
 	});
-}
-export {Styles}
