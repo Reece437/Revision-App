@@ -446,6 +446,9 @@ export default class App extends Component {
     			{this.touch(styles.small, styles.textSmall, 'tan', 'tan(')}
     			{this.touch(styles.small, styles.textSmall, '10^', '10^')}
     			{this.touch(styles.small, styles.textSmall, 'e^', 'e^')}
+    			{this.touch(styles.small, styles.textSmall, 'sin-1', 'sin-1(')}
+    			{this.touch(styles.small, styles.textSmall, 'cos-1', 'cos-1(')}
+    			{this.touch(styles.small, styles.textSmall, 'tan-1', 'tan-1(')}
     			</Text>: null}
     			{this.touch(styles.button, styles.text, '1', 1)}
     			{this.touch(styles.button, styles.text, '2', 2)}
@@ -453,6 +456,18 @@ export default class App extends Component {
     			{this.touch(styles.button, styles.text, '+', '+')}
 			</View>
 			<View style={styles.row}>
+				{this.state.orientation == 'landscape' ? <Text style={{maxWidth: 225}}>
+				{this.touch(styles.small, styles.textSmall, '√', '√(')}
+    			{this.touch(styles.small, styles.textSmall, 'x√', '^(1÷')}
+    			{this.touch(styles.small, styles.textSmall, 'sinh', 'sinh(')}
+    			{this.touch(styles.small, styles.textSmall, 'cosh', 'cosh(')}
+    			{this.touch(styles.small, styles.textSmall, 'tanh', 'tanh(')}
+    			{this.touch(styles.small, styles.textSmall, '^2', '^2')}
+    			{this.touch(styles.small, styles.textSmall, '^', '^')}
+    			{this.touch(styles.small, styles.textSmall, 'sinh-1', 'sinh-1(')}
+    			{this.touch(styles.small, styles.textSmall, 'cosh-1', 'cosh(-1')}
+    			{this.touch(styles.small, styles.textSmall, 'tanh-1', 'tanh-1(')}
+    			</Text> : null}
 				{this.touch(styles.button, styles.text, '4', 4)}
 				{this.touch(styles.button, styles.text, '5', 5)}
 				{this.touch(styles.button, styles.text, '6', 6)}
