@@ -438,13 +438,12 @@ export default class App extends Component {
     			{this.touch(styles.button, styles.text, '×', '×')}
     		</View>
     		<View style={styles.row}>
-    			{this.state.orientation == 'landscape' ? <Text> 
+    			{this.state.orientation == 'landscape' ? <Text style={{maxWidth: 225}}> 
     			{this.touch(styles.small, styles.textSmall, 'log', 'log(')}
     			{this.touch(styles.small, styles.textSmall, 'ln', 'ln(')}
     			{this.touch(styles.small, styles.textSmall, 'sin', 'sin(')}
     			{this.touch(styles.small, styles.textSmall, 'cos', 'cos(')}
     			{this.touch(styles.small, styles.textSmall, 'tan', 'tan(')}
-    			{'\n'}
     			{this.touch(styles.small, styles.textSmall, '10^', '10^')}
     			{this.touch(styles.small, styles.textSmall, 'e^', 'e^')}
     			</Text>: null}
