@@ -33,6 +33,7 @@ export default class Maths {
 			return Math.atan(x) * 360 / (2 * Math.PI);
 		} else return Math.atan(x);
 	}
+	
 	log(x: number) : number {
 		return Math.log10(x)
 	}

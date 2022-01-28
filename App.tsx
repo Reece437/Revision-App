@@ -423,6 +423,12 @@ export default class App extends Component {
 				<Text style={styles.current}>{this.state.current}</Text>
     		</View>
     		<View style={styles.row}>
+    			{this.state.orientation == 'landscape' ? <Text>
+    				{this.touch(styles.span2, styles.text, 'ANS', 'ANS')}
+    				<TouchableOpacity style={styles.span2} onPress={() => this.radOrDeg()}>
+    					<Text style={styles.text}>{trigMode}</Text>
+    				</TouchableOpacity>
+    			</Text> : null}
     			<TouchableOpacity style={styles.span2} onPress={() => {
     			Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null;
     			this.AC();
