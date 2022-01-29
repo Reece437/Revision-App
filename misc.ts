@@ -1,8 +1,34 @@
 import Maths from './maths.tsx';
-
+let maths = new Maths();
 export default class Misc {
 	constructor() {
-		
+		this.map = {
+			'--': '+',
+			'++': '+',
+			'sin(': '* maths.sin(',
+			'cos(': '* maths.cos(',
+			'tan(': '* maths.tan(',
+			'sin⁻¹(': '* maths.sinInv(',
+			'cos⁻¹(': '* maths.cosInv(',
+			'tan⁻¹(': '* maths.tanInv(',
+			'sinh(': '* maths.sinh(',
+			'cosh(': '* maths.cosh(',
+			'tanh(': '* maths.tanh(',
+			'÷': '/',
+			'log': '* maths.log',
+			'ln': '* maths.ln',
+			'√': '* Math.sqrt',
+			'×': '* ',
+			'e': '* Math.E * ',
+			'π': '* Math.PI * ',
+			',': '',
+			'%': '/100 *',
+			'ANS': '* this.state.ANS * '	
+		}
+		this.opers = [
+			'+','×', 
+			'÷','MOD'
+		]
 	}
 	reverseString(eq: string) {
 		let New: string = '';
@@ -14,9 +40,9 @@ export default class Misc {
 	}
 	bigReplace(eq: string) {
 		let New: string = eq;
-		for (let value in this.state.map) {
-			if (!this.state.map.hasOwnProperty(value)) continue;
-			New = New.split(value).join(this.state.map[value])
+		for (let value in this.map) {
+			if (!this.map.hasOwnProperty(value)) continue;
+			New = New.split(value).join(this.map[value])
 		}
 		return New;
 	}
@@ -60,5 +86,86 @@ export default class Misc {
 		} else {
 			return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 		}
+	}
+	change(eq: string) : string {
+		eq = this.bigReplace(eq);
+		while (eq.includes('* *')) {
+			eq = eq.replace('* *', '*') //Have to do this because the /* */g creates a comment
+		}
+		eq = eq.replace(/MOD/g, '%');
+		eq = eq.replace('^', '**');
+		for (let i = 0; i < eq.length; i++) {
+			if (eq[i] == '*') {
+				if ((this.opers.includes(eq[i - 1]) || 
+				eq[i - 1] == '-') &&
+				(eq[i - 1]) != '*' || i == 0) {
+					eq = eq.slice(0, i) + eq.slice(i + 1);
+				} else if (((this.opers.includes(eq[i + 1]) ||
+				eq[i + 1] == '-') &&
+				eq[i + 1] != '(') &&
+				eq[i + 1] != '*') {
+					eq = eq.slice(0, i) + eq.slice(i + 1);
+				}
+			} else if (eq[i] == '(') {
+				if (!isNaN(eq[i - 1])) {
+					eq = eq.slice(0, i) + '* (' + eq.slice(i + 1)
+					i += 3;
+				}
+			} else if (eq[i] == ')') {
+				if (!isNaN(eq[i - 1]) &&
+				eq[i + 1] != '*') {
+					eq = eq.slice(0, i) + ') * ' + eq.slice(i + 1)
+					i += 3;
+				}
+			}
+		}
+		if (eq.slice(-1) == '*') eq = eq.slice(0, -1)
+		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2);
+		while (eq.includes('* ***') || 
+		eq.includes('(* ') ||
+		eq.includes('* /*') ||
+		eq.includes(') * * (') ||
+		eq.includes('* **') ||
+		eq.includes('* +') ||
+		eq.includes('* -') ||
+		eq.includes('* !') ||
+		eq.includes('* /', '/') ||
+		eq.includes('* )')) {
+			eq = eq.replace('* ***', '**');
+			eq = eq.replace('* **', '**');
+			eq = eq.replace('(* ', '(');
+			eq = eq.replace('* /*', '/');
+			eq = eq.replace(') * * (', ') * (');
+			eq = eq.replace('* +', '+');
+			eq = eq.replace('* -', '-');
+			eq = eq.replace('* !', '!');
+			eq = eq.replace('* /', '/');
+			eq = eq.replace('* )', ')')
+		}
+		let nums: string;
+		const allow = [
+			'e','.','E',
+		];
+		while (eq.includes('!')) {
+			let len = eq.length;
+			for (let i = 0; i < len; i++) {
+				if (eq[i] == '!') {
+					nums = '';
+					for (let x = 1; x <= i; x++) {
+						if ((this.opers.includes(eq[i - x]) || eq[i - x] == '-') &&
+						!allow.includes(eq[i - x]))
+						{
+							break;
+						}
+						nums += eq[i - x];
+					}
+					nums = this.reverseString(nums);
+					eq = eq.replace(nums + '!', `${maths.factorial(nums)} *`)
+					break;
+				}
+			}
+		}
+		if (eq.slice(-1) == '*') eq = eq.slice(0, -1);
+		return eq;
 	}
 }

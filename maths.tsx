@@ -33,7 +33,21 @@ export default class Maths {
 			return Math.atan(x) * 360 / (2 * Math.PI);
 		} else return Math.atan(x);
 	}
-	
+	sinh(x: number) : number {
+		if (this.trigMode == 'Deg') {
+			return Math.sinh((x * Math.PI) / 180);
+		} else return Math.sinh(x);
+	}
+	cosh(x: number) : number {
+		if (this.trigMode == 'Deg') {
+			return Math.cosh((x * Math.PI) / 180);
+		} else return Math.cosh(x);
+	}
+	tanh(x: number) : number {
+		if (this.trigMode == 'Deg') {
+			return Math.tanh((x * Math.PI) / 180);
+		} else return Math.tanh(x);
+	}
 	log(x: number) : number {
 		return Math.log10(x)
 	}
@@ -41,7 +55,12 @@ export default class Maths {
 		return Math.log(x)
 	}
 	factorial(x: string) : number {
-		x = parseFloat(x)
+		x = x.replace(/maths/g, 'this')
+		try {
+			x = parseFloat(eval(x));
+		} catch(err) {
+			return 'Syntax Error';
+		}
 		if (x > 170 || !Number.isInteger(x)) return 'undefined';
 		else if (x == 0 || x == 1) return 1;
 		let isNegative: number = 1;

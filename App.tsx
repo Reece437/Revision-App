@@ -7,12 +7,15 @@ import {
 	Platform,
 	Dimensions,
 	SafeAreaView,
+	ScrollView,
 } from 'react-native';
+import Misc from './misc.ts';
 import { LinearGradient } from 'expo-linear-gradient';
 import {stylePortrait, styleLandscape} from './styles.tsx';
 import * as Haptics from 'expo-haptics';
 import Maths from './maths.tsx';
 
+const misc = new Misc();
 let trigMode = 'Deg';
 let maths = new Maths(trigMode)
 let styles = stylePortrait;
@@ -21,6 +24,7 @@ export default class App extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
+			scrollValue: 0.2,
 			ANS: null,
 			ansArr: [],
 			inv: false,
@@ -30,26 +34,6 @@ export default class App extends Component {
 			answer: '',
 			orientation: Dimensions.get('screen').height >
 			Dimensions.get('screen').width ? 'portrait' : 'landscape',
-			map: {
-				'--': '+',
-				'++': '+',
-				'sin(': '* maths.sin(',
-				'cos(': '* maths.cos(',
-				'tan(': '* maths.tan(',
-				'sin-1(': '* maths.sinInv(',
-				'cos-1(': '* maths.cosInv(',
-				'tan-1(': '* maths.tanInv(',
-				'÷': '/',
-				'log': '* maths.log',
-				'ln': '* maths.ln',
-				'√': '* Math.sqrt',
-				'×': '* ',
-				'e': '* Math.E * ',
-				'π': '* Math.PI * ',
-				',': '',
-				'%': '/100 *',
-				'ANS': '* this.state.ANS * '	
-			},
 			opers: [
 				'+','×', 
 				'÷','MOD'
@@ -85,23 +69,16 @@ export default class App extends Component {
 		if (height > width) {
 			this.setState({orientation: 'portrait'});
 			styles = stylePortrait;
+			this.setState({scrollValue: this.state.render ? 0.25 : 0.2})
+			this.setState({firstRound: this.state.render ? 0 : 10})
 			this.forceUpdate();
 		} else {
 			this.setState({orientation: 'landscape'});
 			styles = styleLandscape;
+			this.setState({scrollValue: 0.8})
+			this.setState({firstRound: 10})
 			this.forceUpdate();
 		}
-	}
-	factorial(x: string) : number {
-		x = parseFloat(x)
-		if (x > 170 || !Number.isInteger(x)) return 'undefined';
-		else if (x == 0 || x == 1) return 1;
-		let isNegative: number = 1;
-		if (x < 0) isNegative = -1;
-		for (let i = x - 1; i > 1; i--) {
-			x *= i;
-		}
-		return x * isNegative;
 	}
 	appNum(x: any) : void {
 		if (this.state.current == '' && (x == '!' || x == '%')) return;
@@ -143,47 +120,6 @@ export default class App extends Component {
 			this.compute(this.state.current + x.toString());
 		}
 	}
-	com(num: string) : string {
-		if (isNaN(num) ||
-			num == '' ||
-			(num.includes('e+') ||
-				num.includes('e-'))) {
-			return num;
-		}
-		if (num.includes('.')) {
-			let firstHalf = (num.split('.')[0])
-				.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Can't use localeString because of android
-			let secondHalf = num.split('.')[1];
-			return `${firstHalf}.${secondHalf}`;
-		} else {
-			return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-		}
-	}
-	comNums(eq: string) : string {
-		eq = eq.replace(/,/g, '');
-		let num = '';
-		let len: number = eq.length;
-		for (let i: number = 0; i < len; i++) {
-			if (Number.isInteger(parseFloat(eq[i]))) {
-				num += eq[i];
-				for (let j: number = 1; j < len; j++) {
-					if (Number.isInteger(parseInt(eq[i + j])) ||
-						eq[i + j] == '.') {
-						num += eq[i + j];
-					} else break;
-				}
-				eq = eq.replace(num, this.com(num));
-				if (num.includes('.')) {
-					i += num.length + Math.floor(num.split('.').length / 4);
-				}
-				else {
-					i += num.length + Math.floor(num.length / 4);
-				}
-				num = '';
-			}
-		}
-		return eq;
-	}
 	inverse() : void {
 		let array: string[] = this.state.inner;
 		for (let i = 0; i < this.state.inner.length; i++) {
@@ -191,11 +127,11 @@ export default class App extends Component {
 				case 'sin':
 				case 'cos':
 				case 'tan':
-					array[i] += '-1';
+					array[i] += '⁻¹';
 					break;
-				case 'sin-1':
-				case 'cos-1':
-				case 'tan-1':
+				case 'sin⁻¹':
+				case 'cos⁻¹':
+				case 'tan⁻¹':
 					array[i] = array[i].slice(0, -2);
 					break;
 				case 'log':
@@ -231,100 +167,6 @@ export default class App extends Component {
 		maths = new Maths(trigMode)
 		this.compute(this.state.current);
 	}
-	reverseString(eq: string) : string {
-		let New: string = ''
-		let len: number = eq.length - 1;
-		for (let i: number = len; i >= 0; i--) {
-			New += eq[i];
-		}
-		return New;
-	}
-	change(eq: string) : string {
-		eq = this.bigReplace(eq);
-		while (eq.includes('* *')) {
-			eq = eq.replace('* *', '*') //Have to do this because the /* */g creates a comment
-		}
-		let nums: string;
-		const allow = [
-			'e','.','E'
-		];
-		while (eq.includes('!') || 
-		eq.includes('%')) 
-		{
-			let len = eq.length;
-			for (let i = 0; i < len; i++) {
-				if (eq[i] == '!') {
-					nums = '';
-					for (let x = 1; x <= i; x++) {
-						if (isNaN(parseInt(eq[i - x])) &&
-						!allow.includes(eq[i - x]))
-						{
-							break;
-						}
-						nums += eq[i - x];
-					}
-					nums = this.reverseString(nums);
-					eq = eq.replace(nums + '!', this.factorial(nums))
-					break;
-				}
-			}
-		}
-		eq = eq.replace(/MOD/g, '%');
-		eq = eq.replace('^', '**');
-		for (let i = 0; i < eq.length; i++) {
-			if (eq[i] == '*') {
-				if ((this.state.opers.includes(eq[i - 1]) || 
-				eq[i - 1] == '-') &&
-				(eq[i - 1]) != '*' || i == 0) {
-					eq = eq.slice(0, i) + eq.slice(i + 1);
-				} else if (((this.state.opers.includes(eq[i + 1]) ||
-				eq[i + 1] == '-') &&
-				eq[i + 1] != '(') &&
-				eq[i + 1] != '*') {
-					eq = eq.slice(0, i) + eq.slice(i + 1);
-				}
-			} else if (eq[i] == '(') {
-				if (!isNaN(eq[i - 1])) {
-					eq = eq.slice(0, i) + '* (' + eq.slice(i + 1)
-					i += 3;
-				}
-			} else if (eq[i] == ')') {
-				if (!isNaN(eq[i - 1]) &&
-				eq[i + 1] != '*') {
-					eq = eq.slice(0, i) + ') * ' + eq.slice(i + 1)
-					i += 3;
-				}
-			}
-		}
-		if (eq.slice(-1) == '*') eq = eq.slice(0, -1)
-		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2);
-		while (eq.includes('* ***') || 
-		eq.includes('(* ') ||
-		eq.includes('* /*') ||
-		eq.includes(') * * (') ||
-		eq.includes('* **') ||
-		eq.includes('* +') ||
-		eq.includes('* -')) {
-			eq = eq.replace('* ***', '**');
-			eq = eq.replace('* **', '**');
-			eq = eq.replace('(* ', '(');
-			eq = eq.replace('* /*', '/');
-			eq = eq.replace(') * * (', ') * (');
-			eq = eq.replace('* +', '+');
-			eq = eq.replace('* -', '-');
-		}
-		return eq;
-	}
-	
-	bigReplace(eq: string) : string {
-		let New: string = eq;
-		for (let value in this.state.map) {
-			if (!this.state.map.hasOwnProperty(value)) continue;
-			New = New.split(value).join(this.state.map[value]);
-		}
-		return New;
-	}
-	
 	AC() : void {
 		this.setState({current: '', answer: ''})
 	}
@@ -336,18 +178,22 @@ export default class App extends Component {
 		}
 	}
 	showAdv() : void {
+		if (this.state.orientation == 'landscape') return;
 		this.setState({render: !this.state.render});
 		this.setState({firstRound: this.state.firstRound == 10 ? 0 : 10})
+		this.setState({scrollValue: this.state.scrollValue == 0.2 ? 0.25 : 0.2})
+		this.forceUpdate();
 	}
 	ans(eq: string) : void {
-		eq = eval(eq)
+		eq = eq.replace(/,/g, '');
+		eq = parseFloat(eq);
 		this.setState({ANS: eq});
 		let array: string[] = this.state.ansArr;
-		array.push(this.state.current);
+		array.push(eq);
 		this.setState({ansArr: array});
 	}
 	compute(current: string) : void {
-		let eq: string = this.change(current);
+		let eq: string = misc.change(current);
 		if (eq == 'undefined') {
 			this.setState({answer: ''});
 			return;
@@ -359,7 +205,7 @@ export default class App extends Component {
 			eq = eval(eq).toString();
 			if (eq == 'undefined') {
 				this.setState({answer: eq});
-				this.setState({current: this.comNums(current)});
+				this.setState({current: misc.comNums(current)});
 				return;
 			}
 			eq = (Number(eq).toPrecision()).toString();
@@ -379,9 +225,9 @@ export default class App extends Component {
 				this.setState({answer: ''});
 				this.setState({current: this.comNums(current)});
 			} else {
-				this.setState({answer: this.com(eq).replace('e+', 'E+')
+				this.setState({answer: misc.com(eq).replace('e+', 'E+')
 				.replace('e-', 'E-')});
-				this.setState({current: this.comNums(current)});
+				this.setState({current: misc.comNums(current)});
 			}
 		} catch(err) {
 			//alert(err.message) // for debugging
@@ -397,10 +243,10 @@ export default class App extends Component {
 		if (eq == '') return;
 		else {
 			try {
-				if (this.state.answer == '') eval(this.change(eq));
+				if (this.state.answer == '') {eval(this.change(eq))}
 				this.setState({current: this.state.answer});
 				this.setState({answer: ''});
-				this.ans(this.change(eq));
+				this.ans(this.state.answer);
 			} catch(err) {
 				//alert(err.message)
 				this.setState({current: 'Syntax Error'});
@@ -421,10 +267,12 @@ export default class App extends Component {
 			style={styles.gradient}
 			start={[0.0, 0.5]} end={[1.0, 0.5]}>
 			<SafeAreaView style={styles.container}>
+    		<ScrollView style={{ flexGrow: this.state.scrollValue}}>
     		<View style={styles.screen}>
     			<Text style={styles.answer}>{this.state.answer}</Text>
 				<Text style={styles.current}>{this.state.current}</Text>
     		</View>
+    		</ScrollView>
     		<View style={styles.row}>
     			{this.state.orientation == 'landscape' ? <Text>
     				{this.touch(styles.span2, styles.text, 'ANS', 'ANS')}
@@ -455,9 +303,9 @@ export default class App extends Component {
     			{this.touch(styles.small, styles.textSmall, 'tan', 'tan(')}
     			{this.touch(styles.small, styles.textSmall, '10^', '10^')}
     			{this.touch(styles.small, styles.textSmall, 'e^', 'e^')}
-    			{this.touch(styles.small, styles.textSmall, 'sin-1', 'sin-1(')}
-    			{this.touch(styles.small, styles.textSmall, 'cos-1', 'cos-1(')}
-    			{this.touch(styles.small, styles.textSmall, 'tan-1', 'tan-1(')}
+    			{this.touch(styles.small, styles.textSmall, 'sin⁻¹', 'sin⁻¹(')}
+    			{this.touch(styles.small, styles.textSmall, 'cos⁻¹', 'cos⁻¹(')}
+    			{this.touch(styles.small, styles.textSmall, 'tan⁻¹', 'tan⁻¹(')}
     			</Text>: null}
     			{this.touch(styles.button, styles.text, '1', 1)}
     			{this.touch(styles.button, styles.text, '2', 2)}
@@ -473,9 +321,9 @@ export default class App extends Component {
     			{this.touch(styles.small, styles.textSmall, 'tanh', 'tanh(')}
     			{this.touch(styles.small, styles.textSmall, '^2', '^2')}
     			{this.touch(styles.small, styles.textSmall, '^', '^')}
-    			{this.touch(styles.small, styles.textSmall, 'sinh-1', 'sinh-1(')}
-    			{this.touch(styles.small, styles.textSmall, 'cosh-1', 'cosh(-1')}
-    			{this.touch(styles.small, styles.textSmall, 'tanh-1', 'tanh-1(')}
+    			{this.touch(styles.small, styles.textSmall, 'sinh⁻¹', 'sinh⁻¹(')}
+    			{this.touch(styles.small, styles.textSmall, 'cosh⁻¹', 'cosh⁻¹(')}
+    			{this.touch(styles.small, styles.textSmall, 'tanh⁻¹', 'tanh⁻¹(')}
     			</Text> : null}
 				{this.touch(styles.button, styles.text, '4', 4)}
 				{this.touch(styles.button, styles.text, '5', 5)}
@@ -487,7 +335,7 @@ export default class App extends Component {
 				{this.touch(styles.small, styles.textSmall, '(', '(')}
 				{this.touch(styles.small, styles.textSmall, ')', ')')}
 				{this.touch(styles.small, styles.textSmall, 'e', 'e')}
-				{this.touch(styles.small, styles.textSmall, 'PI', 'PI')}
+				{this.touch(styles.small, styles.textSmall, 'π', 'π')}
 				{this.touch(styles.small, styles.textSmall, '!', '!')}
 				</Text> : null}
 				{this.touch(styles.button, styles.text, '7', 7)}
