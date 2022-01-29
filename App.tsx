@@ -1,8 +1,5 @@
 import React, { Component } from 'react';
 import {
-	StatusBar
-} from 'expo-status-bar';
-import {
 	StyleSheet,
 	Text,
 	View,
@@ -63,7 +60,7 @@ export default class App extends Component {
 				'tan', '√',
 				'%'
 			],
-			errorNames:[
+			errorNames: [
 				'undefined',
 				'Syntax Error',
 				'Math Error',
@@ -302,8 +299,10 @@ export default class App extends Component {
 		while (eq.includes('* ***') || 
 		eq.includes('(* ') ||
 		eq.includes('* /*') ||
-		eq.includes(') * * (')) {
+		eq.includes(') * * (') ||
+		eq.includes('* **')) {
 			eq = eq.replace('* ***', '**');
+			eq = eq.replace('* **', '**');
 			eq = eq.replace('(* ', '(');
 			eq = eq.replace('* /*', '/');
 			eq = eq.replace(') * * (', ') * (');
@@ -324,8 +323,7 @@ export default class App extends Component {
 		this.setState({current: '', answer: ''})
 	}
 	DEL() : void {
-		if (this.state.errorNames.includes(this.state.current)) 
-			AC();
+		if (this.state.errorNames.includes(this.state.current)) this.AC();
 		else {
 			this.setState({current: this.state.current.slice(0, -1)});
 			this.compute(this.state.current.slice(0, -1));
@@ -406,7 +404,6 @@ export default class App extends Component {
 	}
 	componentDidMount() {
     	this.dimensionsSubscription = Dimensions.addEventListener("change", this.checkOrientation);
-		this.forceUpdate();
 	}
 	componentWillUnmount() {
 	  this.dimensionsSubscription?.remove();
@@ -417,7 +414,7 @@ export default class App extends Component {
 			colors={['#43c6ac', '#191654']}
 			style={styles.gradient}
 			start={[0.0, 0.5]} end={[1.0, 0.5]}>
-			<View style={styles.container}>
+			<SafeAreaView style={styles.container}>
     		<View style={styles.screen}>
     			<Text style={styles.answer}>{this.state.answer}</Text>
 				<Text style={styles.current}>{this.state.current}</Text>
@@ -480,6 +477,13 @@ export default class App extends Component {
 				{this.touch(styles.button, styles.text, '-', '-')}
 			</View>
 			<View style={styles.row}>
+				{this.state.orientation == 'landscape' ? <Text style={{maxWidth: 225}}>
+				{this.touch(styles.small, styles.textSmall, '(', '')}
+				{this.touch(styles.small, styles.textSmall, ')', ')')}
+				{this.touch(styles.small, styles.textSmall, 'e', 'e')}
+				{this.touch(styles.small, styles.textSmall, 'PI', 'PI')}
+				{this.touch(styles.small, styles.textSmall, '!', '!')}
+				</Text> : null}
 				{this.touch(styles.button, styles.text, '7', 7)}
 				{this.touch(styles.button, styles.text, '8', 8)}
 				{this.touch(styles.button, styles.text, '9', 9)}
@@ -498,7 +502,7 @@ export default class App extends Component {
     				<Text style={styles.text}>=</Text>
 				</TouchableOpacity>
 			</View>
-			{this.state.render ? <View style={styles.row}>
+			{this.state.render && this.state.orientation != 'landscape' ? <View style={styles.row}>
 				{this.touch(styles.small, styles.textSmall, '(', '(')}
     			{this.touch(styles.small, styles.textSmall, ')', ')')}
     			{this.touch(styles.small, styles.textSmall, this.state.inner[0], 
@@ -514,7 +518,7 @@ export default class App extends Component {
     			{this.touch(styles.small, styles.textSmall, this.state.inner[5], 
     			this.state.inner[5] ==  '√' ? '√(' : '^2')}
 			</View> : null}
-			{this.state.render ? <View style={styles.row}>
+			{this.state.render && this.state.orientation != 'landscape' ? <View style={styles.row}>
 				{this.touch([styles.small, { borderBottomLeftRadius: 10}], styles.textSmall, '^', '^')}
 				{this.touch(styles.small, styles.textSmall, 'π', 'π')}
 				{this.touch(styles.small, styles.textSmall, 'e', 'e')}
@@ -537,7 +541,7 @@ export default class App extends Component {
     				<Text style={styles.textSmall}>Inv</Text>
     			</TouchableOpacity>
 			</View>: null}
-			</View>
+			</SafeAreaView>
 			</LinearGradient>
 		);
 	}

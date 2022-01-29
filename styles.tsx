@@ -130,7 +130,7 @@ import { StyleSheet } from 'react-native';
 			textAlign: 'center'
 		},
 		textSmall: {
-			fontSize: 16,
+			fontSize: 13,
 			textAlign: 'center'
 		},
 		row: {
