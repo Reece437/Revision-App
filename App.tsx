@@ -48,7 +48,7 @@ export default class App extends Component {
 				'π': '* Math.PI * ',
 				',': '',
 				'%': '/100 *',
-				'ANS': 'this.state.ANS'	
+				'ANS': '* this.state.ANS * '	
 			},
 			opers: [
 				'+','×', 
@@ -270,12 +270,15 @@ export default class App extends Component {
 			}
 		}
 		eq = eq.replace(/MOD/g, '%');
+		eq = eq.replace('^', '**');
 		for (let i = 0; i < eq.length; i++) {
 			if (eq[i] == '*') {
-				if (this.state.opers.includes(eq[i - 1]) &&
+				if ((this.state.opers.includes(eq[i - 1]) || 
+				eq[i - 1] == '-') &&
 				(eq[i - 1]) != '*' || i == 0) {
 					eq = eq.slice(0, i) + eq.slice(i + 1);
-				} else if ((this.state.opers.includes(eq[i + 1]) &&
+				} else if (((this.state.opers.includes(eq[i + 1]) ||
+				eq[i + 1] == '-') &&
 				eq[i + 1] != '(') &&
 				eq[i + 1] != '*') {
 					eq = eq.slice(0, i) + eq.slice(i + 1);
@@ -295,17 +298,20 @@ export default class App extends Component {
 		}
 		if (eq.slice(-1) == '*') eq = eq.slice(0, -1)
 		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2);
-		eq = eq.replace('^', '**');
 		while (eq.includes('* ***') || 
 		eq.includes('(* ') ||
 		eq.includes('* /*') ||
 		eq.includes(') * * (') ||
-		eq.includes('* **')) {
+		eq.includes('* **') ||
+		eq.includes('* +') ||
+		eq.includes('* -')) {
 			eq = eq.replace('* ***', '**');
 			eq = eq.replace('* **', '**');
 			eq = eq.replace('(* ', '(');
 			eq = eq.replace('* /*', '/');
 			eq = eq.replace(') * * (', ') * (');
+			eq = eq.replace('* +', '+');
+			eq = eq.replace('* -', '-');
 		}
 		return eq;
 	}
@@ -478,7 +484,7 @@ export default class App extends Component {
 			</View>
 			<View style={styles.row}>
 				{this.state.orientation == 'landscape' ? <Text style={{maxWidth: 225}}>
-				{this.touch(styles.small, styles.textSmall, '(', '')}
+				{this.touch(styles.small, styles.textSmall, '(', '(')}
 				{this.touch(styles.small, styles.textSmall, ')', ')')}
 				{this.touch(styles.small, styles.textSmall, 'e', 'e')}
 				{this.touch(styles.small, styles.textSmall, 'PI', 'PI')}
