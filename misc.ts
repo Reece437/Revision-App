@@ -56,10 +56,10 @@ export default class Misc {
 		let num = '';
 		let len: number = eq.length;
 		for (let i: number = 0; i < len; i++) {
-			if (Number.isInteger(parseFloat(eq[i]))) {
+			if (!isNaN(parseFloat(eq[i]))) {
 				num += eq[i];
 				for (let j: number = 1; j < len; j++) {
-					if (Number.isInteger(parseInt(eq[i + j])) ||
+					if (!isNaN(parseInt(eq[i + j])) ||
 						eq[i + j] == '.') {
 						num += eq[i + j];
 					} else break;
@@ -80,12 +80,12 @@ export default class Misc {
 		if (isNaN(num) ||
 			num == '' ||
 			(num.includes('e+') ||
-				num.includes('e-'))) {
+			num.includes('e-'))) {
 			return num;
 		}
 		if (num.includes('.')) {
 			let firstHalf = (num.split('.')[0])
-				.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "'"); // Can't use localeString because of android
+			.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "'"); // Can't use localeString because of android
 			let secondHalf = num.split('.')[1];
 			return `${firstHalf}.${secondHalf}`;
 		} else {
@@ -93,18 +93,17 @@ export default class Misc {
 		}
 	}
 	change(eq: string) : string {
-		eq = this.bigReplace(eq);
-		while (eq.includes('* *')) {
-			eq = eq.replace('* *', '*') //Have to do this because the /* */g creates a comment
-		}
+		eq = this.bigReplace(eq)
+		.replace(/\* \*/g, '*')
+		.replace(/MOD/g, '%');
 		if ((eq.split('|').length - 1) % 2 != 0) eq += '|';
-		eq = eq.replace(/MOD/g, '%');
 		eq = this.fixMultiplicationErrors(eq);
 		let nums: string;
 		const allow = [
 			'e','.','E',
 		];
 		while (eq.includes('!')) {
+			eq = eq.replace(/\*!/g, '!')
 			let len = eq.length;
 			for (let i = 0; i < len; i++) {
 				if (eq[i] == '!') {
@@ -123,25 +122,29 @@ export default class Misc {
 				}
 			}
 		}
-		for (let i = 0; i < eq.length; i++) {
+		if (eq.includes('|')) {eq = this.fixAbsolute(eq)}
+		if (eq.slice(-1) == '*') eq = eq.slice(0, -1);
+		//alert(eq); //For debugging 
+		return eq;
+	}
+	fixAbsolute(eq: string) : string {
+		let len: number = eq.length;
+		for (let i = 0; i < len; i++) {
 			if (eq[i] == '|') {
 				let New:string = '';
-				for (let j = 1; j < eq.length; j++) {
+				for (let j = 1; j < len; j++) {
 					if (eq[i + j] != '|') {
 						New += eq[i + j]
 					} else break
 				}
 				eq = eq.replace(`|${New}|`, `Math.abs(${New})`);
+				len = eq.length;
 			}
 		}
-		if (eq.slice(-1) == '*') eq = eq.slice(0, -1);
-		//alert(eq); //For debugging 
 		return eq;
 	}
-	fixMultiplicationErrors(eq) {
-		while (eq.includes('^')) {
-			eq = eq.replace('^', '**');
-		}
+	fixMultiplicationErrors(eq: string) : string {
+		eq = eq.replace(/\^/, '**');
 		for (let i = 0; i < eq.length; i++) {
 			if (eq[i] == '*') {
 				if ((this.opers.includes(eq[i - 1]) || 
@@ -170,28 +173,19 @@ export default class Misc {
 		}
 		if (eq.slice(-1) == '*') eq = eq.slice(0, -1)
 		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2);
-		while (eq.includes('* ***') || 
-		eq.includes('(* ') ||
-		eq.includes('* /*') ||
-		eq.includes(') * * (') ||
-		eq.includes('* **') ||
-		eq.includes('* +') ||
-		eq.includes('* -') ||
-		eq.includes('* !') ||
-		eq.includes('* /', '/') ||
-		eq.includes('* )')) {
-			eq = eq.replace('* ***', '**');
-			eq = eq.replace('* **', '**');
-			eq = eq.replace('(* ', '(');
-			eq = eq.replace('* /*', '/');
-			eq = eq.replace(') * * (', ') * (');
-			eq = eq.replace('* +', '+');
-			eq = eq.replace('* -', '-');
-			eq = eq.replace('* !', '!');
-			eq = eq.replace('* /', '/');
-			eq = eq.replace('* )', ')')
-		}
-		//alert(eq);
+		eq = eq.replace(/\* \*\*\*/g, '**')
+		.replace(/\* \*\*/, '**')
+		.replace(/\(\* /g, '(')
+		.replace(/\* \/\*/g, '/')
+		.replace(/\) \* \* \(/g, ') * (')
+		.replace(/\* \+/g, '+')
+		.replace(/\* -\(/g, '-(')
+		.replace(/\* !/g, '!')
+		.replace(/\* \//g, '/')
+		.replace(/\* \)/g, ')')
+		.replace(/\*\*\*/g, '**')
+		.replace(/\)\* \* \(/g, ') * (')
+		.replace(/\* \* \(/g, '* (');
 		return eq;
 	}
 }

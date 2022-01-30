@@ -193,13 +193,17 @@ export default class App extends Component {
 		this.setState({ansArr: array});
 	}
 	compute(current: string) : void {
-		let eq: string = misc.change(current);
-		if (eq == 'undefined') {
-			this.setState({answer: ''});
-			return;
+		let eq: string = current;
+		if (this.state.opers.includes(eq.slice(-1))) {
+			eq = eq.slice(0, -1);
 		}
 		while (eq.split('(').length > eq.split(')').length) {
 			eq += ')';
+		}
+		eq = misc.change(eq);
+		if (eq == 'undefined') {
+			this.setState({answer: ''});
+			return;
 		}
 		try {
 			eq = eval(eq).toString();
@@ -225,15 +229,14 @@ export default class App extends Component {
 				this.setState({answer: ''});
 				this.setState({current: this.comNums(current)});
 			} else {
-				this.setState({answer: misc.com(eq).replace('e+', 'E+')
+				this.setState({answer: misc.com(eq)
+				.replace('e+', 'E+')
 				.replace('e-', 'E-')});
 				this.setState({current: misc.comNums(current)});
 			}
 		} catch(err) {
 			//alert(err.message) // for debugging
-			if (!this.state.opers.includes(current.slice(-1))) {
-				this.setState({answer: ''});
-			}
+			this.setState({answer: ''})
 		}
 	}
 	equals(eq: string) : void {
