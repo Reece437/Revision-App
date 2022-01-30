@@ -85,10 +85,10 @@ export default class Maths {
 		}
 		return x * isNegative;
 	}
-	randomInt(min, max) {
-		return Math.round(Math.random() * (max - min + 1) + min);
+	RandInt(min, max) {
+		return Math.round(Math.random() * (max - min) + min);
 	}
-	randomFloat(min, max) {
+	RandFloat(min, max) {
 		return Math.random() * (max - min) + min;
 	}
 }

@@ -352,7 +352,12 @@ export default class App extends Component {
 				{this.touch(styles.button, styles.text, '÷', '÷')}
 			</View>
 			<View style={styles.row}>
-				{this.touch([styles.button, { borderBottomLeftRadius: this.state.firstRound}], styles.text, '.', '.')}
+				{this.state.orientation == 'landscape' ? <Text style={{maxWidth: 225}}>
+				{this.touch([styles.span2, {width: 80, borderBottomLeftRadius: 10}], [styles.text, {fontSize: 15}], 'RandInt', 'RandInt(')}
+				{this.touch([styles.span2, {width: 65}], [styles.text, {fontSize: 15}], ',', ',')}
+				{this.touch([styles.span2, {width: 80}], [styles.text, {fontSize: 15}], 'RandFloat', 'RandFloat(')}
+				</Text> : null}
+				{this.touch([styles.button, { borderBottomLeftRadius: this.state.orientation == 'portrait' ? this.state.firstRound : 0}], styles.text, '.', '.')}
     			{this.touch(styles.button, styles.text, '0', 0)}
     			<TouchableOpacity
 				style={[styles.span2, { borderBottomRightRadius: this.state.firstRound }]}

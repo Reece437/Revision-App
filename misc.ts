@@ -12,6 +12,8 @@ export default class Misc {
 			'cos⁻¹(': '* maths.cosInv(',
 			'tan⁻¹(': '* maths.tanInv(',
 			'sinh(': '* maths.sinh(',
+			'RandInt(': '* maths.RandInt(',
+			'RandFloat(': '* maths.RandFloat(',
 			'cosh(': '* maths.cosh(',
 			'tanh(': '* maths.tanh(',
 			'sinh⁻¹(': '* maths.sinhInv(',
