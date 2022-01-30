@@ -106,7 +106,7 @@ export default class App extends Component {
 				let len = this.state.current.length;
 				for (let i = len; i >= 0; i--) {
 					if (this.state.opers.includes(this.state.current[i]) || 
-					this.state.current[i] == '-') break;
+					this.state.current[i] == '-' || this.state.current[i] == '^') break;
 					else if (this.state.current[i] == '.') return;
 				}
 			}
@@ -275,8 +275,11 @@ export default class App extends Component {
     		</ScrollView>
     		<View style={styles.row}>
     			{this.state.orientation == 'landscape' ? <Text>
-    				{this.touch(styles.span2, styles.text, 'ANS', 'ANS')}
-    				<TouchableOpacity style={styles.span2} onPress={() => this.radOrDeg()}>
+    				{this.touch([styles.span2, {width: 112.5}], styles.text, 'ANS', 'ANS')}
+    				<TouchableOpacity style={[styles.span2, {width: 112.5}]} onPress={() => {
+    				Platform.OS != 'web' ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) : null
+    				this.radOrDeg()
+    				}}>
     					<Text style={styles.text}>{trigMode}</Text>
     				</TouchableOpacity>
     			</Text> : null}
@@ -337,6 +340,11 @@ export default class App extends Component {
 				{this.touch(styles.small, styles.textSmall, 'e', 'e')}
 				{this.touch(styles.small, styles.textSmall, 'π', 'π')}
 				{this.touch(styles.small, styles.textSmall, '!', '!')}
+				{this.touch(styles.small, styles.textSmall, '|', '|')}
+				{this.touch(styles.small, styles.textSmall, '^3', '^3')}
+				{this.touch(styles.small, styles.textSmall, '%', '%')}
+				{this.touch(styles.small, styles.textSmall, 'MOD', 'MOD')}
+				{this.touch(styles.small, styles.textSmall, '^-1', '^-1')}
 				</Text> : null}
 				{this.touch(styles.button, styles.text, '7', 7)}
 				{this.touch(styles.button, styles.text, '8', 8)}

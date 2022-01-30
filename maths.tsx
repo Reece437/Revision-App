@@ -34,19 +34,34 @@ export default class Maths {
 		} else return Math.atan(x);
 	}
 	sinh(x: number) : number {
-		if (this.trigMode == 'Deg') {
+		if (this.trigMode != 'Deg') {
 			return Math.sinh((x * Math.PI) / 180);
 		} else return Math.sinh(x);
 	}
 	cosh(x: number) : number {
-		if (this.trigMode == 'Deg') {
+		if (this.trigMode != 'Deg') {
 			return Math.cosh((x * Math.PI) / 180);
 		} else return Math.cosh(x);
 	}
 	tanh(x: number) : number {
-		if (this.trigMode == 'Deg') {
+		if (this.trigMode != 'Deg') {
 			return Math.tanh((x * Math.PI) / 180);
 		} else return Math.tanh(x);
+	}
+	sinhInv(x: number) : number {
+		if (this.trigMode != 'Deg') {
+			return Math.asinh(x) * 360 / (2 * Math.PI);
+		} else return Math.asinh(x);
+	}
+	coshInv(x: number) : number {
+		if (this.trigMode != 'Deg') {
+			return Math.ach(x) * 360 / (2 * Math.PI);
+		} else return Math.acosh(x);
+	}
+	tanhInv(x: number) : number {
+		if (this.trigMode != 'Deg') {
+			return Math.atanh(x) * 360 / (2 * Math.PI);
+		} else return Math.atanh(x);
 	}
 	log(x: number) : number {
 		return Math.log10(x)
@@ -59,7 +74,7 @@ export default class Maths {
 		try {
 			x = parseFloat(eval(x));
 		} catch(err) {
-			return 'Syntax Error';
+			return 'Syntax Error'
 		}
 		if (x > 170 || !Number.isInteger(x)) return 'undefined';
 		else if (x == 0 || x == 1) return 1;
@@ -69,5 +84,11 @@ export default class Maths {
 			x *= i;
 		}
 		return x * isNegative;
+	}
+	randomInt(min, max) {
+		return Math.round(Math.random() * (max - min + 1) + min);
+	}
+	randomFloat(min, max) {
+		return Math.random() * (max - min) + min;
 	}
 }
