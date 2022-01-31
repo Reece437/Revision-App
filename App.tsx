@@ -6,9 +6,9 @@ import {
 	TouchableOpacity,
 	Platform,
 	Dimensions,
-	SafeAreaView,
 	ScrollView,
 } from 'react-native';
+import {StatusBar} from 'expo-status-bar';
 import Misc from './misc.ts';
 import { LinearGradient } from 'expo-linear-gradient';
 import {stylePortrait, styleLandscape} from './styles.tsx';
@@ -213,17 +213,8 @@ export default class App extends Component {
 				return;
 			}
 			eq = (Number(eq).toPrecision()).toString();
-			if (eq.includes('.') &&
-			eq.split('.')[1].length > 11)
-			{
-				let secondHalf = eq.split('.')[1];
-				eq = parseFloat(eq).toFixed(13);
-				eq = eq.toString();
-				while ((eq.slice(-1) == '0' ||
-				eq.slice(-1) == '.') && eq.length > 1) 
-				{
-					eq = eq.slice(0, -1);
-				}
+			if (eq.includes('.')) {
+				eq = misc.fixDecimal(eq);
 			}
 			if (eq == 'NaN' || eq.includes('function')) {
 				this.setState({answer: ''});
@@ -246,10 +237,13 @@ export default class App extends Component {
 		if (eq == '') return;
 		else {
 			try {
-				if (this.state.answer == '') {eval(this.change(eq))}
-				this.setState({current: this.state.answer});
-				this.setState({answer: ''});
-				this.ans(this.state.answer);
+				if (this.state.answer == '') {
+						this.setState({current: (eval(misc.change(eq))).toString()});
+				} else {
+					this.setState({current: this.state.answer});
+					this.setState({answer: ''});
+					this.ans(this.state.answer);
+				}
 			} catch(err) {
 				//alert(err.message)
 				this.setState({current: 'Syntax Error'});
@@ -269,7 +263,8 @@ export default class App extends Component {
 			colors={['#43c6ac', '#191654']}
 			style={styles.gradient}
 			start={[0.0, 0.5]} end={[1.0, 0.5]}>
-			<SafeAreaView style={styles.container}>
+			<View style={styles.container}>
+    		<StatusBar backgroundColor={'transparent'} translucent/>
     		<ScrollView style={{ flexGrow: this.state.scrollValue}}>
     		<View style={styles.screen}>
     			<Text style={styles.answer}>{this.state.answer}</Text>
@@ -411,7 +406,7 @@ export default class App extends Component {
     				<Text style={styles.textSmall}>Inv</Text>
     			</TouchableOpacity>
 			</View>: null}
-			</SafeAreaView>
+			</View>
 			</LinearGradient>
 		);
 	}

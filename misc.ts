@@ -144,7 +144,7 @@ export default class Misc {
 		return eq;
 	}
 	fixMultiplicationErrors(eq: string) : string {
-		eq = eq.replace(/\^/, '**');
+		eq = eq.replace(/\^/g, '**');
 		for (let i = 0; i < eq.length; i++) {
 			if (eq[i] == '*') {
 				if ((this.opers.includes(eq[i - 1]) || 
@@ -172,7 +172,7 @@ export default class Misc {
 			}
 		}
 		if (eq.slice(-1) == '*') eq = eq.slice(0, -1)
-		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2);
+		if (eq.slice(-2) == '* ') eq = eq.slice(0, -2)
 		eq = eq.replace(/\* \*\*\*/g, '**')
 		.replace(/\* \*\*/, '**')
 		.replace(/\(\* /g, '(')
@@ -186,6 +186,26 @@ export default class Misc {
 		.replace(/\*\*\*/g, '**')
 		.replace(/\)\* \* \(/g, ') * (')
 		.replace(/\* \* \(/g, '* (');
+		return eq;
+	}
+	fixDecimal(eq: string) : string {
+		if (eq.includes('e')) {
+			let firstHalf: any = eq.split('e')[0];
+			let secondHalf: string = eq.split('e')[1];
+			firstHalf = parseFloat(firstHalf).toFixed(13);
+			firstHalf = this.truncateDecimal(firstHalf);
+			return `${firstHalf}E${secondHalf}`
+		} else {
+			eq = parseFloat(eq).toFixed(13);
+			eq = this.truncateDecimal(eq);
+			return eq;
+		}
+	}
+	truncateDecimal(eq: string) : string {
+		while (eq.slice(-1) == '.' ||
+		eq.slice(-1) == '0') {
+			eq = eq.slice(0, -1);
+		}
 		return eq;
 	}
 }

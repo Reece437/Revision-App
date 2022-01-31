@@ -26,8 +26,5 @@
       },
       "package": "com.reece437.Calculator"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
   }
 }
