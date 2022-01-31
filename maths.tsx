@@ -10,7 +10,7 @@ export default class Maths {
 	cos(x: number) : number {
 		if (this.trigMode == 'Deg') {
 			if (x == 90) {
-				return 0;
+				return 0
 			}
 			return Math.cos((x * Math.PI) / 180);
 		} else return Math.cos(x);
@@ -91,7 +91,7 @@ export default class Maths {
 	RandInt(min, max) {
 		return Math.round(Math.random() * (max - min) + min);
 	}
-	Float(min, max) {
+	RandFloat(min, max) {
 		return Math.random() * (max - min) + min;
 	}
 }
