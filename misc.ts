@@ -47,9 +47,13 @@ export default class Misc {
 		let New: string = eq;
 		for (let value in this.map) {
 			if (!this.map.hasOwnProperty(value)) continue;
-			New = New.split(value).join(this.map[value])
+			var re = new RegExp(this.escapeRegExp(value), 'g');
+			New = New.replace(re, this.map[value]);
 		}
 		return New;
+	}
+	escapeRegExp(stringToGoIntoTheRegex) {
+    	return stringToGoIntoTheRegex.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 	}
 	comNums(eq: string) : string {
 		eq = eq.replace(/'/g, '');
