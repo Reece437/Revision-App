@@ -1,5 +1,8 @@
 import Maths from './maths.tsx';
 let maths = new Maths();
+Number.prototype.factorial = function() {
+    return this > 0 ? this * (this-1).factorial() : 1;
+}
 export default class Misc {
 	constructor() {
 		this.map = {
@@ -106,7 +109,8 @@ export default class Misc {
 		const allow = [
 			'e','.','E',
 		];
-		while (eq.includes('!')) {
+		eq = eq.replace(/!/g, '["factorial"]()')
+		/*while (eq.includes('!')) {
 			eq = eq.replace(/\*!/g, '!')
 			let len = eq.length;
 			for (let i = 0; i < len; i++) {
@@ -125,7 +129,7 @@ export default class Misc {
 					break;
 				}
 			}
-		}
+		}*/
 		if (eq.includes('|')) {eq = this.fixAbsolute(eq)}
 		if (eq.slice(-1) == '*') eq = eq.slice(0, -1);
 		//alert(eq); //For debugging 
@@ -189,6 +193,7 @@ export default class Misc {
 		.replace(/\* \)/g, ')')
 		.replace(/\*\*\*/g, '**')
 		.replace(/\)\* \* \(/g, ') * (')
+		
 		.replace(/\* \* \(/g, '* (');
 		return eq;
 	}

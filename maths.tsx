@@ -67,17 +67,18 @@ export default class Maths {
 		} else return Math.atanh(x);
 	}
 	log(x: number) : number {
-		return Math.log10(x)
+		return Math.log10(x);
 	}
 	ln(x: number) : number {
-		return Math.log(x)
+		return Math.log(x);
 	}
-	factorial(x: string) : number {
-		x = x.replace(/maths/g, 'this')
+	/*factorial(x: string) : number {
+		alert(x);
+		x = x.replace(/maths/g, 'this');
 		try {
 			x = parseFloat(eval(x));
 		} catch(err) {
-			return 'Syntax Error'
+			return 'Syntax Error';
 		}
 		if (x > 170 || !Number.isInteger(x)) return 'undefined';
 		else if (x == 0 || x == 1) return 1;
@@ -87,7 +88,7 @@ export default class Maths {
 			x *= i;
 		}
 		return x * isNegative;
-	}
+	}*/
 	RandInt(min, max) {
 		return Math.round(Math.random() * (max - min) + min);
 	}
