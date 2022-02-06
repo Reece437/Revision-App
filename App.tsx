@@ -1,6 +1,5 @@
-import React, { Component } from 'react'
-//import { StatusBar } from 'expo-status-bar';
-import { AsyncStorage, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import React, { Component } from 'react';
+import { Dimensions, AsyncStorage, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 
 export default class App extends Component {
   revisionCard(index) {
@@ -11,7 +10,7 @@ export default class App extends Component {
 			<Text style={{padding: 5}}>{AsyncStorage.revisionCards[index].description}</Text>
 		</>
 	);
-	return <View style={{borderWidth: 1, borderColor: 'black', margin: 5}}>{x}</View>
+	return <View style={styles.Card}>{x}</View>
   }
   allCards() {
   	let x = [];
@@ -22,12 +21,16 @@ export default class App extends Component {
   		}
   		return <View>{x}</View>
   	} catch(err) {
-  		return <Text>No cards</Text>
+  		return (
+  			<View style={styles.Card}>
+  				<Text style={{margin: 5, fontSize: 30, textAlign: 'left'}}>No cards</Text>
+  			</View>
+  		)
   	}
   }
   addLocalStorageItems() : void {
 	AsyncStorage.revisionCards = [{title: 'Hello there', description: 'First revision set'}, 
-	{title: 'Bye', description: 'second revision set'}]; //this is for testing 
+	{title: 'Bye', description: 'Second revision set'}]; //this is for testing 
   	this.forceUpdate();
   }
   render() {
@@ -39,7 +42,7 @@ export default class App extends Component {
     		onPress={() => this.addLocalStorageItems()}>
     			<Text style={styles.addButtonText}>+</Text>
     		</TouchableOpacity>
-    		<StatusBar style="auto" />
+    		<StatusBar barStyle="dark-content" backgroundColor={'transparent'} translucent/>
     	</View>
 	);
   }
@@ -49,14 +52,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: StatusBar.currentHeight / 3
+    paddingTop: StatusBar.currentHeight
   },
   addButton: {
   	position: 'absolute',
   	alignItems: 'center',
   	right: 10,
   	bottom: 10,
-  	backgroundColor: 'red',
+  	backgroundColor: '#64daf8',
   	width: 100,
   	height: 100,
   	borderRadius: 50
@@ -64,5 +67,10 @@ const styles = StyleSheet.create({
   addButtonText: {
   	textAlign: 'center',
   	fontSize: 60
+  },
+  Card: {
+  	borderWidth: 1,
+  	borderColor: 'black',
+  	margin: 5
   }
 });
