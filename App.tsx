@@ -1,17 +1,17 @@
-import React, { Component } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Dimensions, ScrollView, AsyncStorage, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import { createCard } from './createCard.tsx';
 
-export default class App extends Component {
-  constructor(props) {
-  	super(props);
-  	if (!AsyncStorage.revisionCards) {
-  		AsyncStorage.revisionCards = [{
-  			title: 'No cards',
-  			description: 'Please create some revision cards'
-  		}];
-  	}
+export default function App({navigation}) {
+  const [, updateState] = React.useState();
+  const forceUpdate = React.useCallback(() => updateState({}), []);
+  if (!AsyncStorage.revisionCards) {
+  	AsyncStorage.revisionCards = [{
+  		title: 'No cards',
+  		description: 'Please create some revision cards'
+  	}];
   }
-  revisionCard(index) {
+  const revisionCard = index => {
 	var x = [];
 	x.push(
 		<>
@@ -19,6 +19,11 @@ export default class App extends Component {
 			<Text style={{padding: 5, fontSize: 30}}>{AsyncStorage.revisionCards[index].title}</Text>
 			<Text style={{padding: 5}}>{AsyncStorage.revisionCards[index].description}</Text>
 		</View>
+		</>
+		)
+	if (AsyncStorage.revisionCards[index].title != 'No cards') {
+	x.push(
+		<>
 		<View>
 			<TouchableOpacity 
 			style={styles.trash}
@@ -30,21 +35,34 @@ export default class App extends Component {
 						description: 'Please create some revision cards'
 					}]
 				}
-				this.forceUpdate();
+				forceUpdate();
 			}}>
 				<Text style={{fontSize: 30}}>🗑</Text>
 			</TouchableOpacity>
 		</View>
+		<View>
+			<TouchableOpacity style={styles.playButton}>
+				<Text style={{fontSize: 40}}>▶</Text>
+			</TouchableOpacity>
+		</View>
+		<View>
+			<TouchableOpacity 
+			style={styles.editButton}
+			onPress={() => navigation.navigate('createCard')}>
+				<Text style={{fontSize: 30}}>✏️</Text>
+			</TouchableOpacity>
+		</View>
 		</>
-	);
+	)
+	}
 	return <View>{x}</View>
   }
-  allCards() {
+  const allCards = () => {
   	let x = [];
   	try {
   		let len = AsyncStorage.revisionCards.length;
   		for (let i = 0; i < len; i++) {
-  			x.push(<View>{this.revisionCard(i)}</View>);
+  			x.push(<View>{revisionCard(i)}</View>);
   		}
   		return (
   			<ScrollView style={{flexGrow: 0.8}}>
@@ -52,6 +70,7 @@ export default class App extends Component {
   			</ScrollView>
   			)
   	} catch(err) {
+  		alert(err.message);
   		return (
   			<View style={styles.Card}>
   				<Text style={{margin: 5, fontSize: 30, textAlign: 'left'}}>No cards</Text>
@@ -59,26 +78,24 @@ export default class App extends Component {
   		)
   	}
   }
-  addLocalStorageItems() : void {
+  const addLocalStorageItems = () => {
 	if (AsyncStorage.revisionCards[0].title == 'No cards') {
 		AsyncStorage.revisionCards = [];
 	}
 	AsyncStorage.revisionCards.push({title: 'Hello there', description: 'First revision set'},
 	{title: 'Bye', description: 'Second revision set'}); //this is for testing 
-  	this.forceUpdate();
+  	forceUpdate();
   }
-  render() {
-  	return (
+  return (
 		<View style={styles.container}>
-    		{this.allCards()}
+    		{allCards()}
     		<TouchableOpacity style={styles.addButton} 
-    		onPress={() => this.addLocalStorageItems()}>
+    		onPress={() => addLocalStorageItems()}>
     			<Text style={styles.addButtonText}>+</Text>
     		</TouchableOpacity>
     		<StatusBar barStyle="dark-content" backgroundColor={'transparent'} translucent/>
     	</View>
 	);
-  }
 }
 
 const styles = StyleSheet.create({
@@ -110,5 +127,15 @@ const styles = StyleSheet.create({
   	position: 'absolute',
   	left: 315,
   	top: -85,
+  },
+  playButton: {
+  	position: 'absolute',
+  	left: 230,
+  	top: -95
+  },
+  editButton: {
+  	position: 'absolute',
+  	left: 275,
+  	top: -86
   }
 });
