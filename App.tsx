@@ -48,7 +48,8 @@ export default function App({navigation}) {
 		<View>
 			<TouchableOpacity 
 			style={styles.editButton}
-			onPress={() => navigation.navigate('createCard')}>
+			onPress={() => navigation.navigate('createCard', {
+			n: index + 1})}>
 				<Text style={{fontSize: 30}}>✏️</Text>
 			</TouchableOpacity>
 		</View>
