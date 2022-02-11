@@ -15,6 +15,6 @@ export default function App() {
         <Stack.Screen options={{headerShown: false}}name="Home" component={HomeScreen} />
         <Stack.Screen options={{headerShown: false}}name="createCard" component={createCard} />
       </Stack.Navigator>
-    </NavigationContainer>
+     </NavigationContainer>
   );
 }

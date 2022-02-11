@@ -48,8 +48,7 @@ export default function App({navigation}) {
 		<View>
 			<TouchableOpacity 
 			style={styles.editButton}
-			onPress={() => navigation.navigate('createCard', {
-			n: index + 1})}>
+			onPress={() => navigation.navigate('createCard',)}>
 				<Text style={{fontSize: 30}}>✏️</Text>
 			</TouchableOpacity>
 		</View>
@@ -122,7 +121,8 @@ const styles = StyleSheet.create({
   Card: {
   	borderWidth: 1,
   	borderColor: 'black',
-  	margin: 5
+  	margin: 5,
+  	borderRadius: 10
   },
   trash: {
   	position: 'absolute',
