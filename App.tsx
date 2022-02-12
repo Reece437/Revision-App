@@ -1,8 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dimensions, ScrollView, AsyncStorage, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import { createCard } from './createCard.tsx';
+import { useIsFocused } from '@react-navigation/native';
+
 
 export default function App({navigation}) {
+  const isFocused = useIsFocused();
   const [, updateState] = React.useState();
   const forceUpdate = React.useCallback(() => updateState({}), []);
   if (!AsyncStorage.revisionCards) {
@@ -11,6 +14,7 @@ export default function App({navigation}) {
   		description: 'Please create some revision cards'
   	}];
   }
+  
   const revisionCard = index => {
 	var x = [];
 	x.push(
@@ -48,7 +52,9 @@ export default function App({navigation}) {
 		<View>
 			<TouchableOpacity 
 			style={styles.editButton}
-			onPress={() => navigation.navigate('createCard',)}>
+			onPress={() => navigation.navigate('createCard', {
+				i: index
+			})}>
 				<Text style={{fontSize: 30}}>✏️</Text>
 			</TouchableOpacity>
 		</View>
@@ -88,7 +94,7 @@ export default function App({navigation}) {
   }
   return (
 		<View style={styles.container}>
-    		{allCards()}
+    		{isFocused ? allCards() : null}
     		<TouchableOpacity style={styles.addButton} 
     		onPress={() => addLocalStorageItems()}>
     			<Text style={styles.addButtonText}>+</Text>
