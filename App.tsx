@@ -5,18 +5,26 @@ import { useIsFocused } from '@react-navigation/native';
 
 
 export default function App({navigation}) {
+  const [noCards, setNoCards] = useState(false);
   const isFocused = useIsFocused();
   const [, updateState] = React.useState();
   const forceUpdate = React.useCallback(() => updateState({}), []);
   if (!AsyncStorage.revisionCards) {
   	AsyncStorage.revisionCards = [{
-  		title: 'No cards',
-  		description: 'Please create some revision cards'
+  		title: 'No card sets',
+  		description: 'Please create some revision card sets'
   	}];
+  	setNoCards(true);
   }
   
   const revisionCard = index => {
-	var x = [];
+	let x: any = [];
+	if (AsyncStorage.revisionCards[index].title == '') {
+		AsyncStorage.revisionCards[index].title = 'Untitled'
+	}
+	if (AsyncStorage.revisionCards[index].description == '') {
+		AsyncStorage.revisionCards[index].description = "You didn't give me a description";
+	}
 	x.push(
 		<>
 		<View style={styles.Card}>
@@ -25,7 +33,7 @@ export default function App({navigation}) {
 		</View>
 		</>
 		)
-	if (AsyncStorage.revisionCards[index].title != 'No cards') {
+	if (!noCards) {
 	x.push(
 		<>
 		<View>
@@ -35,9 +43,10 @@ export default function App({navigation}) {
 				AsyncStorage.revisionCards.splice(index, 1);
 				if (AsyncStorage.revisionCards.length == 0) {
 					AsyncStorage.revisionCards = [{
-						title: 'No cards',
-						description: 'Please create some revision cards'
+						title: 'No card sets',
+						description: 'Please create some revision card sets'
 					}]
+					setNoCards(true);
 				}
 				forceUpdate();
 			}}>
@@ -45,7 +54,10 @@ export default function App({navigation}) {
 			</TouchableOpacity>
 		</View>
 		<View>
-			<TouchableOpacity style={styles.playButton}>
+			<TouchableOpacity style={styles.playButton}
+			onPress={() => navigation.navigate('Play', {
+				i: index
+			})}>
 				<Text style={{fontSize: 40}}>▶</Text>
 			</TouchableOpacity>
 		</View>
@@ -64,7 +76,7 @@ export default function App({navigation}) {
 	return <View>{x}</View>
   }
   const allCards = () => {
-  	let x = [];
+  	let x: any = [];
   	try {
   		let len = AsyncStorage.revisionCards.length;
   		for (let i = 0; i < len; i++) {
@@ -76,7 +88,7 @@ export default function App({navigation}) {
   			</ScrollView>
   			)
   	} catch(err) {
-  		alert(err.message);
+  		//alert(err.message);
   		return (
   			<View style={styles.Card}>
   				<Text style={{margin: 5, fontSize: 30, textAlign: 'left'}}>No cards</Text>
@@ -85,12 +97,18 @@ export default function App({navigation}) {
   	}
   }
   const addLocalStorageItems = () => {
-	if (AsyncStorage.revisionCards[0].title == 'No cards') {
+	if (noCards) {
 		AsyncStorage.revisionCards = [];
+		setNoCards(false);
 	}
-	AsyncStorage.revisionCards.push({title: 'Hello there', description: 'First revision set'},
-	{title: 'Bye', description: 'Second revision set'}); //this is for testing 
-  	forceUpdate();
+	
+	AsyncStorage.revisionCards.push({
+		title: '',
+		description: ''
+	});
+	navigation.navigate('createCard', {
+		i: AsyncStorage.revisionCards.length - 1
+	})
   }
   return (
 		<View style={styles.container}>

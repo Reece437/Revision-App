@@ -1,9 +1,8 @@
 import React, {useRef, useState, useCallback} from "react";
-import { AsyncStorage, Modal, TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
+import {AsyncStorage, TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
 import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
 
 export default function TempScreen({route, navigation}) {
-	const [modalVisible, setModalVisible] = useState(false);
 	const [title, setTitle] = useState(AsyncStorage.revisionCards[route.params.i].title);
 	const [description, setDescription] = useState(AsyncStorage.revisionCards[route.params.i].description);
 	const richText1 = useRef();
@@ -15,7 +14,8 @@ export default function TempScreen({route, navigation}) {
 	const createCardInterface = index => {
 		if (!AsyncStorage.revisionCards[route.params.i].card) {
 			AsyncStorage.revisionCards[route.params.i].card = [{question: '', answer: ''}];
-		} else if (!AsyncStorage.revisionCards[route.params.i].card[index]) {
+		} 
+		if (!AsyncStorage.revisionCards[route.params.i].card[index]) {
 			AsyncStorage.revisionCards[route.params.i].card.push({
 				question: '',
 				answer: ''
@@ -29,13 +29,15 @@ export default function TempScreen({route, navigation}) {
 				AsyncStorage.revisionCards[route.params.i].card[index].answer
 			);
 		} catch(err) {
-			//richText1.current.setContentHTML('')
+			//alert(err.message)
 		}
 		return (
 		<SafeAreaView style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5}}>
+            <Text style={{textAlign: 'center', fontSize: 30}}>Card No. {n + 1} {'\n'}
+			<Text style={{fontSize: 12}}>Total cards: {AsyncStorage.revisionCards[route.params.i].card.length}</Text></Text>
             {n != 0 ? <TouchableOpacity style={{
 				position: 'absolute',
-				top: 0,
+				top: 5,
 				left: 5,
 			}} onPress={() => {
 				setN(n - 1)
@@ -45,7 +47,7 @@ export default function TempScreen({route, navigation}) {
 			</TouchableOpacity> : null}
 			<TouchableOpacity style={{
 				position: 'absolute',
-				top: 0,
+				top: 5,
 				right: 5,
 			}} onPress={() => {
 				setN(n + 1);
@@ -53,6 +55,21 @@ export default function TempScreen({route, navigation}) {
 			}}>
 				<Text style={{fontSize: 20, color: '#56ddfe'}}>Next</Text>
 			</TouchableOpacity>
+			<TouchableOpacity onPress={() => {
+				AsyncStorage.revisionCards[route.params.i].card.splice(index, 1);
+				if (n + 1 < AsyncStorage.revisionCards[route.params.i].card.length) {
+					setN(n + 1);
+				} else {
+					if (n != 0) {
+						setN(n - 1);
+					} else {
+						setN(0);
+						forceUpdate()
+					}
+				}
+			}}>
+    			<Text style={{textAlign: 'right', fontSize: 25}}>🗑</Text>
+    		</TouchableOpacity>
             <TextInput 
             	placeholder={'Title..'}
             	onChangeText={newText => {
@@ -137,7 +154,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: 'black',
 		fontSize: 30,
-		marginTop: 30,
+		marginTop: 20,
 		padding: 5
 	},
 	description: {
