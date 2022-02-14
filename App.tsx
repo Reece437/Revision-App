@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Dimensions, ScrollView, AsyncStorage, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import { Dimensions, ListItem, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import { createCard } from './createCard.tsx';
 import { useIsFocused } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function App({navigation}) {
@@ -17,78 +18,90 @@ export default function App({navigation}) {
   	setNoCards(true);
   }
   
-  const revisionCard = index => {
-	let x: any = [];
-	if (AsyncStorage.revisionCards[index].title == '') {
-		AsyncStorage.revisionCards[index].title = 'Untitled'
-	}
-	if (AsyncStorage.revisionCards[index].description == '') {
-		AsyncStorage.revisionCards[index].description = "You didn't give me a description";
-	}
-	x.push(
-		<>
-		<View style={styles.Card}>
-			<Text style={{padding: 5, fontSize: 30}}>{AsyncStorage.revisionCards[index].title}</Text>
-			<Text style={{padding: 5}}>{AsyncStorage.revisionCards[index].description}</Text>
-		</View>
-		</>
-		)
+  const RevisionCard = props => {
+	const index = props.index;
 	if (!noCards) {
-	x.push(
-		<>
-		<View>
-			<TouchableOpacity 
-			style={styles.trash}
-			onPress={() => {
-				AsyncStorage.revisionCards.splice(index, 1);
-				if (AsyncStorage.revisionCards.length == 0) {
-					AsyncStorage.revisionCards = [{
-						title: 'No card sets',
-						description: 'Please create some revision card sets'
-					}]
-					setNoCards(true);
-				}
-				forceUpdate();
-			}}>
-				<Text style={{fontSize: 30}}>🗑</Text>
-			</TouchableOpacity>
-		</View>
-		<View>
-			<TouchableOpacity style={styles.playButton}
-			onPress={() => navigation.navigate('Play', {
-				i: index
-			})}>
-				<Text style={{fontSize: 40}}>▶</Text>
-			</TouchableOpacity>
-		</View>
-		<View>
-			<TouchableOpacity 
-			style={styles.editButton}
-			onPress={() => navigation.navigate('createCard', {
-				i: index
-			})}>
-				<Text style={{fontSize: 30}}>✏️</Text>
-			</TouchableOpacity>
-		</View>
-		</>
-	)
+		if (AsyncStorage.revisionCards[index].title == '') {
+			AsyncStorage.revisionCards[index].title = 'Untitled';
+		}
+		if (AsyncStorage.revisionCards[index].description == '') {
+			AsyncStorage.revisionCards[index].description = "You didn't give me a description";
+		}
 	}
-	return <View>{x}</View>
+	if (noCards) {
+		return (
+			<View 
+  			style={styles.Card}
+  			key={`a${index}`}>
+				<Text key={`usjaoqjwi${index}`} style={{padding: 5, fontSize: 30}}>{AsyncStorage.revisionCards[index].title}</Text>
+				<Text key={`hsuai${index}`} style={{padding: 5}}>{AsyncStorage.revisionCards[index].description}</Text>
+			</View>
+		);
+	} else {
+		return (
+			<>
+				<View 
+  				style={styles.Card}>
+					<Text style={{padding: 5, fontSize: 30}}>{AsyncStorage.revisionCards[index].title}</Text>
+					<Text style={{padding: 5}}>{AsyncStorage.revisionCards[index].description}</Text>
+				</View>
+				<View key={`b${index}`}>
+				<TouchableOpacity
+					key={`f${index}`}
+					style={styles.trash}
+					onPress={() => {
+						AsyncStorage.revisionCards.splice(index, 1);
+							if (AsyncStorage.revisionCards.length == 0) {
+								AsyncStorage.revisionCards = [{
+									title: 'No card sets',
+									description: 'Please create some revision card sets'
+								}]
+								setNoCards(true);
+							}
+						forceUpdate();
+					}}>
+						<Text key={`iwishaia${index}`} style={{fontSize: 30}}>🗑</Text>
+					</TouchableOpacity>
+				</View>
+				<View key={`c${index}`}>
+					<TouchableOpacity 
+					key={`h${index}`}
+					style={styles.playButton}
+					onPress={() => navigation.navigate('Play', {
+						i: index
+					})}>
+						<Text key={`hdiakwps${index}`} style={{fontSize: 40}}>▶</Text>
+					</TouchableOpacity>
+				</View>
+				<View key={`d${index}`}>
+					<TouchableOpacity 
+					key={`g${index}`}
+					style={styles.editButton}
+					onPress={() => navigation.navigate('createCard', {
+						i: index
+					})}>
+						<Text key={`hdhdh${index}`} style={{fontSize: 30}}>✏️</Text>
+					</TouchableOpacity>
+				</View>	
+			</>
+		);
+	}
   }
-  const allCards = () => {
+  const AllCards = () => {
   	let x: any = [];
   	try {
   		let len = AsyncStorage.revisionCards.length;
+  		/*
+  		
+  		*/
   		for (let i = 0; i < len; i++) {
-  			x.push(<View>{revisionCard(i)}</View>);
+  			x.push(<RevisionCard key={i} index={i} />)	
   		}
   		return (
-  			<ScrollView style={{flexGrow: 0.8}}>
-  				<View>{x}</View>
-  			</ScrollView>
-  			)
+  			<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
+  		);
   	} catch(err) {
-  		//alert(err.message);
+  		alert(err.message);
   		return (
   			<View style={styles.Card}>
   				<Text style={{margin: 5, fontSize: 30, textAlign: 'left'}}>No cards</Text>
@@ -101,7 +114,6 @@ export default function App({navigation}) {
 		AsyncStorage.revisionCards = [];
 		setNoCards(false);
 	}
-	
 	AsyncStorage.revisionCards.push({
 		title: '',
 		description: ''
@@ -111,14 +123,14 @@ export default function App({navigation}) {
 	})
   }
   return (
-		<View style={styles.container}>
-    		{isFocused ? allCards() : null}
-    		<TouchableOpacity style={styles.addButton} 
-    		onPress={() => addLocalStorageItems()}>
-    			<Text style={styles.addButtonText}>+</Text>
-    		</TouchableOpacity>
-    		<StatusBar barStyle="dark-content" backgroundColor={'transparent'} translucent/>
-    	</View>
+  	<View style={styles.container}>
+		{isFocused ? <AllCards /> : null}
+		<TouchableOpacity style={styles.addButton}
+		onPress={() => addLocalStorageItems()}>
+			<Text style={styles.addButtonText}>+</Text>
+		</TouchableOpacity>
+		<StatusBar backgroundColor={'transparent'} barStyle="dark-content" translucent />
+	</View>
 	);
 }
 

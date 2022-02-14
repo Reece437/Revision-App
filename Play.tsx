@@ -1,14 +1,13 @@
 import React, {useState, useEffect} from 'react';
 import {
 	StatusBar,
-	AsyncStorage,
 	View,
 	Text,
 	StyleSheet,
 	TouchableOpacity
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Play({route, navigation}) {
 	const [finished, setFinished] = useState(false)

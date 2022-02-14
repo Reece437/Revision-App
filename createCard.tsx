@@ -1,6 +1,7 @@
 import React, {useRef, useState, useCallback} from "react";
-import {AsyncStorage, TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
+import {TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
 import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TempScreen({route, navigation}) {
 	const [title, setTitle] = useState(AsyncStorage.revisionCards[route.params.i].title);
@@ -64,7 +65,7 @@ export default function TempScreen({route, navigation}) {
 						setN(n - 1);
 					} else {
 						setN(0);
-						forceUpdate()
+						forceUpdate();
 					}
 				}
 			}}>
