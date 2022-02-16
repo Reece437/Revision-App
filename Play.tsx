@@ -18,6 +18,7 @@ export default function Play({route, navigation}) {
 	
 	const removeUnfinishedCards = () => {
 		let corrected: object[] = [];
+		try {
 		for (let i = 0; i < AsyncStorage.revisionCards[route.params.i].card.length;
 		i++) {
 			if (AsyncStorage.revisionCards[route.params.i].card[i].question == '' ||
@@ -26,7 +27,10 @@ export default function Play({route, navigation}) {
 			} else {
 				corrected.push(AsyncStorage.revisionCards[route.params.i].card[i]);
 			}
-		}	
+		}
+		} catch(err) {
+			corrected = [];
+		}
 		return corrected;
 	}
 	const shuffle = array => {
@@ -41,7 +45,7 @@ export default function Play({route, navigation}) {
 		setCards(shuffle(removeUnfinishedCards()));
 		setFinished(false);
 	}
-	const displayQuestionAndAnswer = () => {
+	const DisplayQuestionAndAnswer = () => {
 		if (cards.length == 0) {
 			return (
 				<View style={styles.box}>
@@ -101,7 +105,7 @@ export default function Play({route, navigation}) {
 			</View>
 		);
 	}
-	const finishedScreen = () => {
+	const FinishedScreen = () => {
 		return (
 			<View style={styles.box}>
 				<Text style={{fontSize: 32, color: '#0bb002'}}>You got {correct} correct.</Text>
@@ -116,7 +120,8 @@ export default function Play({route, navigation}) {
 	const [cards, setCards] = useState(shuffle(removeUnfinishedCards()));
 	return (
 		<>
-			{!finished ? displayQuestionAndAnswer() : finishedScreen()}
+			{!finished ? <DisplayQuestionAndAnswer /> : <FinishedScreen />}
+			<StatusBar backgroundColor={'transparent'} barStyle="dark-content" translucent />
 		</>
 	);
 }

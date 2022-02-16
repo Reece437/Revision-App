@@ -4,16 +4,39 @@ import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TempScreen({route, navigation}) {
-	const [title, setTitle] = useState(AsyncStorage.revisionCards[route.params.i].title);
-	const [description, setDescription] = useState(AsyncStorage.revisionCards[route.params.i].description);
+	const [title, setTitle] = useState();
+	const [description, setDescription] = useState();
+	AsyncStorage.getItem('revisionCards').then(data => {
+		data = JSON.parse(data);
+		setTitle(data[route.params.i].title);
+		setDescription(data[route.params.i].description)
+	})
 	const richText1 = useRef();
 	const richText2 = useRef();
 	const [n, setN] = useState(0);
 	const [, updateState] = useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	
-	const createCardInterface = index => {
-		if (!AsyncStorage.revisionCards[route.params.i].card) {
+	const CreateCardInterface = index => {
+		const [question, setQuestion] = useState();
+		const [answer, setAnswer] = useState();
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			if (!data[route.params.i].card) {
+				data[route.params.i].card = [{
+					question: '',
+					answer: ''
+				}]
+			}
+			if (!data[route.params.i].card[index]) {
+				data[route.params.i].card[index] = {
+					question: '',
+					answer: ''
+				}
+			}
+			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+		})
+		/*if (!AsyncStorage.revisionCards[route.params.i].card) {
 			AsyncStorage.revisionCards[route.params.i].card = [{question: '', answer: ''}];
 		} 
 		if (!AsyncStorage.revisionCards[route.params.i].card[index]) {
@@ -21,21 +44,30 @@ export default function TempScreen({route, navigation}) {
 				question: '',
 				answer: ''
 			});
-		}
+		}*/
 		try {
-			richText1.current.setContentHTML(
+			AsyncStorage.getItem('revisionCards').then(data => {
+				data = JSON.parse(data);
+				richText1.current.setContentHTML(
+					data[route.params.i].card[index].question;
+				);
+				richText2.current.setContentHTML(
+					data[route.params.i].card[index].answer;
+				);
+			})
+			/*richText1.current.setContentHTML(
 				AsyncStorage.revisionCards[route.params.i].card[index].question
 			);
 			richText2.current.setContentHTML(
 				AsyncStorage.revisionCards[route.params.i].card[index].answer
-			);
+			);*/
 		} catch(err) {
 			//alert(err.message)
 		}
 		return (
-		<SafeAreaView style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5}}>
+		<View style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5}}>
             <Text style={{textAlign: 'center', fontSize: 30}}>Card No. {n + 1} {'\n'}
-			<Text style={{fontSize: 12}}>Total cards: {AsyncStorage.revisionCards[route.params.i].card.length}</Text></Text>
+			<Text style={{fontSize: 12}}>Total cards: AsyncStorage.revisionCards[route.params.i].card.length</Text></Text>
             {n != 0 ? <TouchableOpacity style={{
 				position: 'absolute',
 				top: 5,
@@ -57,7 +89,18 @@ export default function TempScreen({route, navigation}) {
 				<Text style={{fontSize: 20, color: '#56ddfe'}}>Next</Text>
 			</TouchableOpacity>
 			<TouchableOpacity onPress={() => {
-				AsyncStorage.revisionCards[route.params.i].card.splice(index, 1);
+				AsyncStorage.getItem('revisionCards').then(data => {
+					data = JSON.parse(data);
+					data[route.params.i].splice(index, 1);
+					AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+					if (n + 1 < data[route.params.i].card.length) {
+						setN(n + 1)
+					} else {
+						if (n != 0) setN(n - 1);
+						else setN(0);
+					}
+				})
+				/*AsyncStorage.revisionCards[route.params.i].card.splice(index, 1);
 				if (n + 1 < AsyncStorage.revisionCards[route.params.i].card.length) {
 					setN(n + 1);
 				} else {
@@ -67,7 +110,7 @@ export default function TempScreen({route, navigation}) {
 						setN(0);
 						forceUpdate();
 					}
-				}
+				}*/
 			}}>
     			<Text style={{textAlign: 'right', fontSize: 25}}>🗑</Text>
     		</TouchableOpacity>
@@ -75,7 +118,12 @@ export default function TempScreen({route, navigation}) {
             	placeholder={'Title..'}
             	onChangeText={newText => {
             		setTitle(newText);
-            		AsyncStorage.revisionCards[route.params.i].title = newText;
+            		AsyncStorage.getItem('revisionCards').then(data => {
+            			data = JSON.parse(data);
+            			data[route.params.i].title = newText;
+            			AsyncStorage.setItem('revisionCards', data);
+            		})
+            		//AsyncStorage.revisionCards[route.params.i].title = newText;
             	}}
             	value={title}
             	style={styles.title}
@@ -84,7 +132,12 @@ export default function TempScreen({route, navigation}) {
             	placeholder={'Description...'}
             	onChangeText={newText => {
             		setDescription(newText)
-            		AsyncStorage.revisionCards[route.params.i].description = newText;
+            		AsyncStorage.getItem('revisionCards').then(data => {
+            			data = JSON.parse(data);
+            			data[route.params.i].description = newText;
+            			AsyncStorage.setItem('revisionCards', data);
+            		})
+            		//AsyncStorage.revisionCards[route.params.i].description = newText;
             	}}
             	value={description}
             	style={styles.description}
@@ -122,7 +175,7 @@ export default function TempScreen({route, navigation}) {
                     />
                 </KeyboardAvoidingView>
             </ScrollView>
-        </SafeAreaView>
+        </View>
 		);
 	}
 	const Toolbar = (editor, style) => {
@@ -142,12 +195,11 @@ export default function TempScreen({route, navigation}) {
             />
 		);
 	}
+	useEffect(() => {
+		forceUpdate();
+	}, [])
 	return (
-		<>
-        	<View>
-        		{createCardInterface(n)}
-        	</View>
-        </>
+        <>{CreateCardInterface(n)}</>
     );
 };
 const styles = StyleSheet.create({

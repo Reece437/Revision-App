@@ -1,138 +1,161 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Dimensions, ListItem, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
-import { createCard } from './createCard.tsx';
-import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function App({navigation}) {
-  const [noCards, setNoCards] = useState(false);
-  const isFocused = useIsFocused();
-  const [, updateState] = React.useState();
-  const forceUpdate = React.useCallback(() => updateState({}), []);
-  if (!AsyncStorage.revisionCards) {
-  	AsyncStorage.revisionCards = [{
-  		title: 'No card sets',
-  		description: 'Please create some revision card sets'
-  	}];
-  	setNoCards(true);
-  }
-  
-  const RevisionCard = props => {
-	const index = props.index;
-	if (!noCards) {
-		if (AsyncStorage.revisionCards[index].title == '') {
-			AsyncStorage.revisionCards[index].title = 'Untitled';
-		}
-		if (AsyncStorage.revisionCards[index].description == '') {
-			AsyncStorage.revisionCards[index].description = "You didn't give me a description";
-		}
-	}
+AsyncStorage.getItem('revisionCards').then(data => {
+	data = JSON.parse(data);
+	console.log(data)
+})
+
+export default function Home({navigation}) {
+	const [count, setCount] = useState(0)
+	const [all, setAll] = useState();
+	const [noCards, setNoCards] = useState(false);
+	const [, updateState] = React.useState();
+	const forceUpdate = React.useCallback(() => updateState({}), []);
+	
+  	const RevisionCard = (data, index) => {
+	console.log('data ' + data[index]);
 	if (noCards) {
 		return (
 			<View 
-  			style={styles.Card}
-  			key={`a${index}`}>
-				<Text key={`usjaoqjwi${index}`} style={{padding: 5, fontSize: 30}}>{AsyncStorage.revisionCards[index].title}</Text>
-				<Text key={`hsuai${index}`} style={{padding: 5}}>{AsyncStorage.revisionCards[index].description}</Text>
-			</View>
+  			style={styles.Card}>
+					<Text style={{padding: 5, fontSize: 30}}>{data[index].title}</Text>
+					<Text style={{padding: 5}}>{data[index].description}</Text>
+			</View>	
 		);
 	} else {
 		return (
-			<>
-				<View 
+			<View 
   				style={styles.Card}>
-					<Text style={{padding: 5, fontSize: 30}}>{AsyncStorage.revisionCards[index].title}</Text>
-					<Text style={{padding: 5}}>{AsyncStorage.revisionCards[index].description}</Text>
+  				<View>
+					<Text style={{padding: 5, fontSize: 30}}>{data[index].title}</Text>
+					<Text style={{padding: 5}}>{data[index].description}</Text>
 				</View>
-				<View key={`b${index}`}>
+				<View>
 				<TouchableOpacity
-					key={`f${index}`}
 					style={styles.trash}
 					onPress={() => {
-						AsyncStorage.revisionCards.splice(index, 1);
-							if (AsyncStorage.revisionCards.length == 0) {
-								AsyncStorage.revisionCards = [{
+						data.splice(index, 1);
+						console.log(data.length);
+						AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+						AsyncStorage.getItem('revisionCards').then(list => {
+							list = JSON.parse(list)
+							console.log('list: ' + list.length);
+							if (list.length == 0) {
+								console.log('yes');
+								AsyncStorage.setItem('revisionCards', JSON.stringify([{
 									title: 'No card sets',
 									description: 'Please create some revision card sets'
-								}]
+								}]));
 								setNoCards(true);
 							}
-						forceUpdate();
+						})
+						AllCards();
 					}}>
-						<Text key={`iwishaia${index}`} style={{fontSize: 30}}>🗑</Text>
+						<Text style={{fontSize: 30}}>🗑</Text>
 					</TouchableOpacity>
 				</View>
-				<View key={`c${index}`}>
+				<View >
 					<TouchableOpacity 
-					key={`h${index}`}
 					style={styles.playButton}
 					onPress={() => navigation.navigate('Play', {
 						i: index
 					})}>
-						<Text key={`hdiakwps${index}`} style={{fontSize: 40}}>▶</Text>
+						<Text style={{fontSize: 40}}>▶</Text>
 					</TouchableOpacity>
 				</View>
-				<View key={`d${index}`}>
+				<View>
 					<TouchableOpacity 
-					key={`g${index}`}
 					style={styles.editButton}
 					onPress={() => navigation.navigate('createCard', {
 						i: index
 					})}>
-						<Text key={`hdhdh${index}`} style={{fontSize: 30}}>✏️</Text>
+						<Text style={{fontSize: 30}}>✏️</Text>
 					</TouchableOpacity>
-				</View>	
-			</>
+				</View>
+			</View>
 		);
 	}
   }
   const AllCards = () => {
-  	let x: any = [];
+  	var x = [];
   	try {
-  		let len = AsyncStorage.revisionCards.length;
-  		/*
-  		
-  		*/
-  		for (let i = 0; i < len; i++) {
-  			x.push(<RevisionCard key={i} index={i} />)	
-  		}
-  		return (
-  			<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
-  		);
-  	} catch(err) {
-  		alert(err.message);
-  		return (
-  			<View style={styles.Card}>
-  				<Text style={{margin: 5, fontSize: 30, textAlign: 'left'}}>No cards</Text>
-  			</View>
-  		)
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			//if (typeof(data) == 'object')
+			let len = data.length;
+			for (let i = 0; i < len; i++) {
+  				x.push(<View key={i}>{RevisionCard(data, i)}</View>)
+  			}
+  			setAll(<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>);
+		})
+	} catch(err) {
+  		console.log(err.message)
+  		setAll(<View>Error</View>)
   	}
   }
-  const addLocalStorageItems = () => {
-	if (noCards) {
-		AsyncStorage.revisionCards = [];
+	const addLocalStorageItems = () => {
+		if (noCards) {
+			AsyncStorage.clear()
+			AsyncStorage.setItem('revisionCards', JSON.stringify([]))
+		}
+		AsyncStorage.getItem('revisionCards').then(data => {
+			if (data == null) {
+				data = [];
+			} else {
+				data = JSON.parse(data)
+			}
+			data.push({title: 'new', description: 'this is new'});
+			AsyncStorage.setItem('revisionCards', JSON.stringify(data))
+		})
 		setNoCards(false);
+		setCount(count + 1);
+		//AllCards();
+		/*AsyncStorage.revisionCards.push({
+			title: '',
+			description: ''
+		});
+		navigation.navigate('Other', {
+			i: AsyncStorage.revisionCards.length - 1
+		})*/
 	}
-	AsyncStorage.revisionCards.push({
-		title: '',
-		description: ''
-	});
-	navigation.navigate('createCard', {
-		i: AsyncStorage.revisionCards.length - 1
-	})
-  }
-  return (
-  	<View style={styles.container}>
-		{isFocused ? <AllCards /> : null}
-		<TouchableOpacity style={styles.addButton}
-		onPress={() => addLocalStorageItems()}>
-			<Text style={styles.addButtonText}>+</Text>
-		</TouchableOpacity>
-		<StatusBar backgroundColor={'transparent'} barStyle="dark-content" translucent />
-	</View>
+	useEffect(() => {
+		AsyncStorage.getItem('revisionCards').then(data => {
+  		if (data == null) {
+  			console.log('null')
+  			AsyncStorage.setItem('revisionCards', JSON.stringify([{
+  				title: 'No card sets',
+  				description: 'Please create some card sets'
+  			}]))
+  			setNoCards(true);
+  		}
+  		}).then(() => AllCards());
+	}, [count, noCards])
+	return (
+		<View style={styles.container}>
+			{all}
+			<TouchableOpacity 
+			style={styles.addButton}
+			onPress={() => addLocalStorageItems()}>
+				<Text style={styles.addButtonText}>+</Text>
+			</TouchableOpacity>
+			<TouchableOpacity onPress={() => {
+				AsyncStorage.clear();
+				AsyncStorage.setItem('revisionCards', JSON.stringify([{
+					title: 'No card sets',
+					description: 'Please create some card sets'
+				}]));
+				setNoCards(true);
+				forceUpdate();
+			}}>
+				<Text>Clear all</Text>
+			</TouchableOpacity>
+		</View>
 	);
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -162,8 +185,8 @@ const styles = StyleSheet.create({
   },
   trash: {
   	position: 'absolute',
-  	left: 315,
-  	top: -85,
+  	left: 310,
+  	top: -80,
   },
   playButton: {
   	position: 'absolute',
