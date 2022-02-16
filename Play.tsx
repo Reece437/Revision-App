@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
 	StatusBar,
 	View,
@@ -15,17 +15,21 @@ export default function Play({route, navigation}) {
 	const [incorrect, setIncorrect] = useState(0);
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [n, setN] = useState(0)
-	
-	const removeUnfinishedCards = () => {
+	const [all, setAll] = useState();
+	const [, updateState] = useState();
+	const forceUpdate = React.useCallback(() => updateState({}), []);
+	const [cards, setCards] = useState([]);
+
+	const removeUnfinishedCards = data => {
 		let corrected: object[] = [];
 		try {
-		for (let i = 0; i < AsyncStorage.revisionCards[route.params.i].card.length;
+		for (let i = 0; i < data.length;
 		i++) {
-			if (AsyncStorage.revisionCards[route.params.i].card[i].question == '' ||
-			AsyncStorage.revisionCards[route.params.i].card[i].answer == '') {
+			if (data[i].question == '' ||
+			data[i].answer == '') {
 				continue;
 			} else {
-				corrected.push(AsyncStorage.revisionCards[route.params.i].card[i]);
+				corrected.push(data[i]);
 			}
 		}
 		} catch(err) {
@@ -42,11 +46,12 @@ export default function Play({route, navigation}) {
 		setShowAnswer(false);
 		setCorrect(0);
 		setIncorrect(0);
-		setCards(shuffle(removeUnfinishedCards()));
 		setFinished(false);
+		displayContent();
 	}
-	const DisplayQuestionAndAnswer = () => {
-		if (cards.length == 0) {
+	const DisplayQuestionAndAnswer = props => {
+		const data = props.data;
+		if (data.length == 0) {
 			return (
 				<View style={styles.box}>
 					<Text style={{fontSize: 30}}>You have no cards in this set that have both a question, and an answer,
@@ -55,8 +60,8 @@ export default function Play({route, navigation}) {
 			);
 		}
 		let source: object = {
-			html: !showAnswer ? `<div style='font-size: 50px;'>${cards[n].question}<div>`
-			: `<div style='font-size:50px;'>${cards[n].answer}</div>`
+			html: !showAnswer ? `<div style='font-size: 50px;'>${data[n].question}<div>`
+			: `<div style='font-size:50px;'>${data[n].answer}</div>`
 		};
 		return (
 			<View style={{flex: 1}}>
@@ -117,10 +122,23 @@ export default function Play({route, navigation}) {
 			</View>
 		);
 	}
-	const [cards, setCards] = useState(shuffle(removeUnfinishedCards()));
+	const displayContent = () => {
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			console.log(data[route.params.i].card)
+			setCards(shuffle(removeUnfinishedCards(data[route.params.i].card)));
+			console.log('set cards')
+		})
+	};
+	useEffect(() => {
+		displayContent();
+	}, [])
+	useEffect(() => {
+		forceUpdate();
+	}, [cards])
 	return (
 		<>
-			{!finished ? <DisplayQuestionAndAnswer /> : <FinishedScreen />}
+			{!finished ?  <DisplayQuestionAndAnswer data={cards} /> : <FinishedScreen />}
 			<StatusBar backgroundColor={'transparent'} barStyle="dark-content" translucent />
 		</>
 	);

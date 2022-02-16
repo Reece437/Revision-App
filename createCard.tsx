@@ -1,25 +1,18 @@
-import React, {useRef, useState, useCallback} from "react";
+import React, {useRef, useState, useCallback, useEffect} from "react";
 import {TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
 import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TempScreen({route, navigation}) {
-	const [title, setTitle] = useState();
-	const [description, setDescription] = useState();
-	AsyncStorage.getItem('revisionCards').then(data => {
-		data = JSON.parse(data);
-		setTitle(data[route.params.i].title);
-		setDescription(data[route.params.i].description)
-	})
+	const [all, setAll] = useState();
 	const richText1 = useRef();
 	const richText2 = useRef();
 	const [n, setN] = useState(0);
 	const [, updateState] = useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	
-	const CreateCardInterface = index => {
-		const [question, setQuestion] = useState();
-		const [answer, setAnswer] = useState();
+	const createLocalStorageItems = index => {
+		console.log('n: ' + n);
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			if (!data[route.params.i].card) {
@@ -27,54 +20,49 @@ export default function TempScreen({route, navigation}) {
 					question: '',
 					answer: ''
 				}]
+				AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 			}
+		})
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
 			if (!data[route.params.i].card[index]) {
-				data[route.params.i].card[index] = {
+				console.log('yes');
+				data[route.params.i].card.push({
 					question: '',
 					answer: ''
-				}
+				})
+				console.log(data[route.params.i].card.length)
+				console.log(data[route.params.i])
+				AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 			}
-			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 		})
-		/*if (!AsyncStorage.revisionCards[route.params.i].card) {
-			AsyncStorage.revisionCards[route.params.i].card = [{question: '', answer: ''}];
-		} 
-		if (!AsyncStorage.revisionCards[route.params.i].card[index]) {
-			AsyncStorage.revisionCards[route.params.i].card.push({
-				question: '',
-				answer: ''
-			});
-		}*/
+	}
+	const CreateCardInterface = props => {
+		const data = props.data;
+		const index = props.index
+		const [title, setTitle] = useState(data[route.params.i].title);
+		const [description, setDescription] = useState(data[route.params.i].description);
 		try {
-			AsyncStorage.getItem('revisionCards').then(data => {
-				data = JSON.parse(data);
-				richText1.current.setContentHTML(
-					data[route.params.i].card[index].question;
-				);
-				richText2.current.setContentHTML(
-					data[route.params.i].card[index].answer;
-				);
-			})
-			/*richText1.current.setContentHTML(
-				AsyncStorage.revisionCards[route.params.i].card[index].question
+			richText1.current.setContentHTML(
+				data[route.params.i].card[index].question
 			);
 			richText2.current.setContentHTML(
-				AsyncStorage.revisionCards[route.params.i].card[index].answer
-			);*/
+				data[route.params.i].card[index].answer
+			);
 		} catch(err) {
-			//alert(err.message)
+			console.log(err.message);
 		}
 		return (
 		<View style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5}}>
             <Text style={{textAlign: 'center', fontSize: 30}}>Card No. {n + 1} {'\n'}
-			<Text style={{fontSize: 12}}>Total cards: AsyncStorage.revisionCards[route.params.i].card.length</Text></Text>
+			<Text style={{fontSize: 12}}>Total number of cards: {data[route.params.i].card.length}</Text></Text>
             {n != 0 ? <TouchableOpacity style={{
 				position: 'absolute',
 				top: 5,
 				left: 5,
 			}} onPress={() => {
 				setN(n - 1)
-				forceUpdate();
+				//displayContent();
 			}}>
 				<Text style={{fontSize: 20, color: '#56ddfe'}}>Previous</Text>
 			</TouchableOpacity> : null}
@@ -84,45 +72,28 @@ export default function TempScreen({route, navigation}) {
 				right: 5,
 			}} onPress={() => {
 				setN(n + 1);
-				forceUpdate();
+				//displayContent();
 			}}>
 				<Text style={{fontSize: 20, color: '#56ddfe'}}>Next</Text>
 			</TouchableOpacity>
 			<TouchableOpacity onPress={() => {
-				AsyncStorage.getItem('revisionCards').then(data => {
-					data = JSON.parse(data);
-					data[route.params.i].splice(index, 1);
-					AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-					if (n + 1 < data[route.params.i].card.length) {
-						setN(n + 1)
-					} else {
-						if (n != 0) setN(n - 1);
-						else setN(0);
-					}
-				})
-				/*AsyncStorage.revisionCards[route.params.i].card.splice(index, 1);
-				if (n + 1 < AsyncStorage.revisionCards[route.params.i].card.length) {
-					setN(n + 1);
+				data[route.params.i].card.splice(index, 1);
+				AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+				if (n + 1 < data[route.params.i].card.length) {
+					setN(n + 1)
 				} else {
-					if (n != 0) {
-						setN(n - 1);
-					} else {
-						setN(0);
-						forceUpdate();
-					}
-				}*/
+					if (n != 0) setN(n - 1);
+					else setN(0);
+				}
 			}}>
     			<Text style={{textAlign: 'right', fontSize: 25}}>🗑</Text>
     		</TouchableOpacity>
             <TextInput 
-            	placeholder={'Title..'}
+            	placeholder={'Title...'}
             	onChangeText={newText => {
             		setTitle(newText);
-            		AsyncStorage.getItem('revisionCards').then(data => {
-            			data = JSON.parse(data);
-            			data[route.params.i].title = newText;
-            			AsyncStorage.setItem('revisionCards', data);
-            		})
+            		data[route.params.i].title = newText;
+            		AsyncStorage.setItem('revisionCards', JSON.stringify(data));
             		//AsyncStorage.revisionCards[route.params.i].title = newText;
             	}}
             	value={title}
@@ -132,11 +103,8 @@ export default function TempScreen({route, navigation}) {
             	placeholder={'Description...'}
             	onChangeText={newText => {
             		setDescription(newText)
-            		AsyncStorage.getItem('revisionCards').then(data => {
-            			data = JSON.parse(data);
-            			data[route.params.i].description = newText;
-            			AsyncStorage.setItem('revisionCards', data);
-            		})
+            		data[route.params.i].description = newText
+            		AsyncStorage.setItem('revisionCards', JSON.stringify(data));
             		//AsyncStorage.revisionCards[route.params.i].description = newText;
             	}}
             	value={description}
@@ -149,11 +117,13 @@ export default function TempScreen({route, navigation}) {
                 style={styles.editor}>
                     <RichEditor
                     	initialHeight={50}
-                    	initialContentHTML={AsyncStorage.revisionCards[route.params.i].card[index].question}
+                    	initialContentHTML={data[route.params.i].card[index].question}
                     	placeholder={'Enter question here...'}
                         ref={richText1}
                         onChange={ questionHTML => {
-                            AsyncStorage.revisionCards[route.params.i].card[index].question = questionHTML;
+                            data[route.params.i].card[index].question = questionHTML;
+                            AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+                            //AsyncStorage.revisionCards[route.params.i].card[index].question = questionHTML;
                         }}
                         androidHardwareAccelerationDisabled={true} 
                     />
@@ -165,11 +135,13 @@ export default function TempScreen({route, navigation}) {
                 style={styles.editor}>
                     <RichEditor
                     	initialHeight={50}
-                    	initialContentHTML={AsyncStorage.revisionCards[route.params.i].card[index].answer}
+                    	initialContentHTML={data[route.params.i].card[index].answer}
                     	placeholder={'Enter answer here...'}
                         ref={richText2}
                         onChange={ answerHTML => {
-                            AsyncStorage.revisionCards[route.params.i].card[index].answer = answerHTML;
+                        	data[route.params.i].card[index].answer = answerHTML;  
+                            AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+                            //AsyncStorage.revisionCards[route.params.i].card[index].answer = answerHTML;
                         }}
                         androidHardwareAccelerationDisabled={true} 
                     />
@@ -195,11 +167,31 @@ export default function TempScreen({route, navigation}) {
             />
 		);
 	}
+	const displayContent = async () => {
+		//createLocalStorageItems(n);
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			if (!data[route.params.i].card) {
+				data[route.params.i].card = [{
+					question: '',
+					answer: ''
+				}]
+			}
+			if (!data[route.params.i].card[n]) {
+				data[route.params.i].card.push({
+					question: '',
+					answer: ''
+				})
+			}
+			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+			setAll(<CreateCardInterface data={data} index={n} />);
+		})
+	}
 	useEffect(() => {
-		forceUpdate();
-	}, [])
+		displayContent();
+	}, [n])
 	return (
-        <>{CreateCardInterface(n)}</>
+        <>{all}</>
     );
 };
 const styles = StyleSheet.create({

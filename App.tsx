@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Dimensions, ListItem, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 AsyncStorage.getItem('revisionCards').then(data => {
@@ -17,6 +18,14 @@ export default function Home({navigation}) {
 	
   	const RevisionCard = (data, index) => {
 	console.log('data ' + data[index]);
+	if (data[index].title == '' ) {
+		data[index].title = 'Untitled';
+		AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+	}
+	if (data[index].description == '' ) {
+		data[index].description = 'Untitled';
+		AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+	}
 	if (noCards) {
 		return (
 			<View 
@@ -101,18 +110,18 @@ export default function Home({navigation}) {
 			AsyncStorage.clear()
 			AsyncStorage.setItem('revisionCards', JSON.stringify([]))
 		}
-		AsyncStorage.getItem('revisionCards').then(data => {
-			if (data == null) {
-				data = [];
-			} else {
-				data = JSON.parse(data)
-			}
-			data.push({title: 'new', description: 'this is new'});
-			AsyncStorage.setItem('revisionCards', JSON.stringify(data))
-		})
 		setNoCards(false);
-		setCount(count + 1);
-		//AllCards();
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			data.push({
+				title: '',
+				description: ''
+			});
+			AsyncStorage.setItem('revisionCards', JSON.stringify(data))
+			navigation.navigate('createCard', {
+				i: data.length - 1
+			})
+		})
 		/*AsyncStorage.revisionCards.push({
 			title: '',
 			description: ''
@@ -121,6 +130,19 @@ export default function Home({navigation}) {
 			i: AsyncStorage.revisionCards.length - 1
 		})*/
 	}
+	useFocusEffect(
+		useCallback(() => {
+		AsyncStorage.getItem('revisionCards').then(data => {
+  		if (data == null) {
+  			console.log('null')
+  			AsyncStorage.setItem('revisionCards', JSON.stringify([{
+  				title: 'No card sets',
+  				description: 'Please create some card sets'
+  			}]))
+  			setNoCards(true);
+  		}
+  		}).then(() => AllCards());
+    }, []))
 	useEffect(() => {
 		AsyncStorage.getItem('revisionCards').then(data => {
   		if (data == null) {
