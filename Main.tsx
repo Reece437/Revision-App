@@ -4,11 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function App({navigation}) {
-	const [count, setCount] = useState(0)
-	const [all, setAll] = useState();
 	const [noCards, setNoCards] = useState(false);
 	const [, updateState] = React.useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
+	const [storageItems, setStorageItems] = useState();
+	const [render, setRender] = useState(false);
 	
   	const RevisionCard = (data, index) => {
 	//console.log('data ' + data[index]);
@@ -51,11 +51,12 @@ export default function App({navigation}) {
 										AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 										AsyncStorage.getItem('revisionCards').then(list => {
 											list = JSON.parse(list)
+											console.log(list.length)
 											if (list.length == 0) {
 												setNoCards(true);
 											}
 										})
-										AllCards();
+										forceUpdate();
 									}
 								},
 								{
@@ -82,7 +83,8 @@ export default function App({navigation}) {
 					<TouchableOpacity 
 					style={styles.editButton}
 					onPress={() => navigation.navigate('Other', {
-						i: index
+						i: index,
+						n: 0,
 					})}>
 						<Text style={{fontSize: 30}}>✏️</Text>
 					</TouchableOpacity>
@@ -94,24 +96,22 @@ export default function App({navigation}) {
   const AllCards = () => {
   	let x: object[] = [];
   	try {
-		AsyncStorage.getItem('revisionCards').then(data => {
-			data = JSON.parse(data);
-			let len = data.length;
+			let len: number = storageItems.length;
+			console.log(len)
 			if (len == 0) {
-				setAll(<ScrollView style={{flexGrow: 0.8}}>{RevisionCard([{
+				return(<ScrollView style={{flexGrow: 0.8}}>{RevisionCard([{
 					title: 'No card sets',
 					description: 'Please create some card sets'
 				}], 0)}</ScrollView>)
 			} else {
 				for (let i = 0; i < len; i++) {
-  					x.push(<View key={i}>{RevisionCard(data, i)}</View>)
+  					x.push(<View key={i}>{RevisionCard(storageItems, i)}</View>)
   				}
-  				setAll(<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>);
+  				return(<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>);
 			}
-			})
 	} catch(err) {
-  		//console.log(err.message)
-  		setAll(<View>Error</View>)
+  		console.log(err.message)
+  		return(<Text style={{color: 'white'}}>Error</Text>)
   	}
   }
 	const addLocalStorageItems = () => {
@@ -120,7 +120,6 @@ export default function App({navigation}) {
 			AsyncStorage.setItem('revisionCards', JSON.stringify([]));
 			setNoCards(false);
 		}
-		setCount(count + 1)
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			data.push({
@@ -129,39 +128,41 @@ export default function App({navigation}) {
 			});
 			AsyncStorage.setItem('revisionCards', JSON.stringify(data))
 			navigation.navigate('Other', {
-				i: data.length - 1
+				i: data.length - 1,
+				n: 0
 			})
-		})
-		/*AsyncStorage.revisionCards.push({
-			title: '',
-			description: ''
 		});
-		navigation.navigate('Other', {
-			i: AsyncStorage.revisionCards.length - 1
-		})*/
+	}
+	const mergeCardSets = () => {
+		return;
 	}
 	useEffect(() => {
-		AsyncStorage.getItem('revisionCards').then(data => {
-  		data = JSON.parse(data);
-  		if (data.length == 0 || data.length == undefined) {
-  			setNoCards(true);
-  		}
-  		}).then(() => AllCards());
-	}, [count, noCards, navigation])
-	useEffect(() => {
 		navigation.addListener('focus', () => {
-			setNoCards(false);
-			setCount(count + 1);
-		})
+			AsyncStorage.getItem('revisionCards').then(data => {
+				data = JSON.parse(data);
+				if (data.length == 0 || data.length == undefined) {
+  					setNoCards(true);
+  				}
+				setStorageItems(data);
+			})
+			forceUpdate();
+		});
 	});
 	return (
 		<View style={styles.container}>
-			{all}
+			<AllCards />
 			<TouchableOpacity 
 			style={styles.addButton}
-			onPress={() => addLocalStorageItems()}>
+			onPress={() => setRender(!render)}>
 				<Text style={styles.addButtonText}>+</Text>
 			</TouchableOpacity>
+			{render ? <TouchableOpacity style={styles.addSecondary}
+			onPress={() => addLocalStorageItems()}>
+				<Text style={{textAlign: 'center'}}>New</Text>
+			</TouchableOpacity> : null}
+			{render ? <TouchableOpacity style={styles.addTertiary}>
+				<Text style={{textAlign: 'center'}}>Merge</Text>
+			</TouchableOpacity> : null}
 			<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />
 		</View>
 	);
@@ -208,5 +209,50 @@ const styles = StyleSheet.create({
   	position: 'absolute',
   	left: 275,
   	top: -80
-  }
+  },
+  boxCard: {
+	color: 'white',
+	backgroundColor: '#3035f5',
+	width: 35,
+	height: 45,
+	marginLeft: 2.5,
+	marginRight: 2.5,
+	marginTop: 5,
+	borderRadius: 10,
+	justifyContent: 'center',
+	alignItems: 'center'
+	},
+	addButton1: {
+		position: 'absolute',
+		bottom: '15%',
+		right: 35
+	},
+	addButton2: {
+		position: 'absolute',
+		bottom: '25%',
+		right: 35
+	},
+	addSecondary: {
+		zIndex: 1,
+		position: 'absolute',
+		bottom: '15%',
+		right: 35,
+		backgroundColor: '#64daf8',
+		borderRadius: 50,
+		width: 50,
+		height: 50,
+		alignItems: 'center',
+		justifyContent: 'center'
+	},
+	addTertiary: {
+		position: 'absolute',
+		bottom: '22%',
+		right: 35,
+		backgroundColor: '#64daf8',
+		borderRadius: 50,
+		width: 50,
+		height: 50,
+		alignItems: 'center',
+		justifyContent: 'center'
+	}
 });

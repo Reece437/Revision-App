@@ -8,13 +8,29 @@ import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
 export default function TempScreen({route, navigation}) {
 	const [editor, setEditor] = useState(1)
 	const [count, setCount] = useState(0)
-	const [all, setAll] = useState();
+	const [all, setAll] = useState(<Text>someValue</Text>);
 	const richText1 = useRef();
 	const richText2 = useRef();
-	const [n, setN] = useState(0);
+	const [n, setN] = useState(route.params.n);
 	const [, updateState] = useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	
+	
+	const BoxCards = props => {
+		console.log('data ' + props.data);
+		let len: number = props.data[route.params.i].card.length;
+		let x: any = [];
+		for (let i = 0; i < len; i++) {
+			x.push(
+			<TouchableOpacity style={styles.boxCard} key={i}
+			onPress={() => setN(i)}>
+				<Text style={{color: 'white', textAlign: 'center'}}>{i + 1}</Text>
+			</TouchableOpacity>);
+		}
+		return (
+			<ScrollView horizontal={true} style={{flexGrow: 0.001}}>{x}</ScrollView>
+		);
+	}
 	const CreateCardInterface = props => {
 		const data = props.data;
 		const index = props.index
@@ -25,8 +41,7 @@ export default function TempScreen({route, navigation}) {
 		const [selection, setSelection] = useState({
 			start: data[route.params.i].card[index].answer.length,
 			end: data[route.params.i].card[index].answer.length
-		})
-		
+		});
 		return (
 		<View style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5, flex: 1}}>
             <Text style={{textAlign: 'center', fontSize: 30, color: 'white'}}>Card No. {n + 1} {'\n'}
@@ -57,12 +72,15 @@ export default function TempScreen({route, navigation}) {
 				if (n + 1 < data[route.params.i].card.length) {
 					setN(n + 1)
 				} else {
-					if (n != 0) setN(n - 1);
-					else setCount(count + 1);
+					if (n != 0 && n == data[route.params.i].card.length) {
+						setN(n - 1)
+					}
+					else setCount(count + 1)
 				}
 			}}>
     			<Text style={{textAlign: 'right', fontSize: 25}}>🗑</Text>
     		</TouchableOpacity>
+    		<BoxCards data={data}/>
             <TextInput 
             	placeholder={'Title...'}
             	placeholderTextColor={'#e3ecef74'}
@@ -96,9 +114,15 @@ export default function TempScreen({route, navigation}) {
 					actions.insertOrderedList, actions.insertLink,
 					actions.keyboard, actions.setStrikethrough,
 					actions.setUnderline, actions.removeFormat,
-					actions.checkboxList,
-					actions.undo, actions.redo,]}
-                iconMap={{ [actions.heading1]: ({tintColor}) => (<Text style={[{color: tintColor}]}>H1</Text>), }}
+					actions.checkboxList, actions.undo, actions.redo,
+					actions.setSubscript, actions.setSuperscript, 
+					actions.heading1, actions.heading2, actions.blockquote,
+					actions.code, actions.alignLeft, actions.alignCenter, actions.alignRight, actions.alignFull]}
+                iconMap={{ [actions.heading1]: ({tintColor}) => (<Text style={[{color: tintColor}]}>H1</Text>), 
+                	[actions.heading2] : ({tintColor}) => (<Text style={{color: tintColor}}>H2</Text>),
+                	[actions.blockquote] : ({tintColor}) => (<Text style={{color: tintColor}}>BQ</Text>)
+                	
+                }}
             />
             	<KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                 	style={styles.editor}>
@@ -123,14 +147,20 @@ export default function TempScreen({route, navigation}) {
             	onPressAddImage={() => addImage()}
             	editor={richText2}
                 style={{backgroundColor: 'black', borderWidth: 1, borderColor: 'white', borderBottomColor: 'gray', marginTop: 5}}
-                actions={[ actions.setBold,
+                actions={[actions.setBold,
 					actions.setItalic, actions.insertBulletsList,
 					actions.insertOrderedList, actions.insertLink,
 					actions.keyboard, actions.setStrikethrough,
 					actions.setUnderline, actions.removeFormat,
-					actions.checkboxList,
-					actions.undo, actions.redo,]}
-                iconMap={{ [actions.heading1]: ({tintColor}) => (<Text style={[{color: tintColor}]}>H1</Text>), }}
+					actions.checkboxList, actions.undo, actions.redo,
+					actions.setSubscript, actions.setSuperscript, 
+					actions.heading1, actions.heading2, actions.blockquote,
+					actions.code, actions.alignLeft, actions.alignCenter, actions.alignRight, actions.alignFull]}
+                iconMap={{ [actions.heading1]: ({tintColor}) => (<Text style={[{color: tintColor}]}>H1</Text>), 
+                	[actions.heading2] : ({tintColor}) => (<Text style={{color: tintColor}}>H2</Text>),
+                	[actions.blockquote] : ({tintColor}) => (<Text style={{color: tintColor}}>BQ</Text>)
+                	
+                }}
             />
             	<KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                 	style={styles.editor}>
@@ -145,7 +175,6 @@ export default function TempScreen({route, navigation}) {
                         onChange={ answerHTML => {
                         	answerHTML = answerHTML.replace(/<img sr/, `<img style='width: 110px; height: 110px;' sr`);
                         	//console.log(answerHTML);
-
                             data[route.params.i].card[index].answer = answerHTML;
                             AsyncStorage.setItem('revisionCards', JSON.stringify(data));
                             //AsyncStorage.revisionCards[route.params.i].card[index].question = questionHTML;
@@ -159,8 +188,6 @@ export default function TempScreen({route, navigation}) {
 		);
 	}
 	const displayContent = () => {
-		//console.(route.params.data)
-		//createLocalStorageItems(n);
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			if (!data[route.params.i].card) {
@@ -175,6 +202,7 @@ export default function TempScreen({route, navigation}) {
 					answer: ''
 				})
 			}
+			console.log(data);
 			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 			setAll(<CreateCardInterface key={'90'} data={data} index={n} />);
 		})
@@ -183,7 +211,9 @@ export default function TempScreen({route, navigation}) {
 		displayContent();
 	}, [n, count])
 	return (
-        <View style={{flex: 1, backgroundColor: 'black'}} key={'all'}>{all}</View>
+        <View style={{flex: 1, backgroundColor: 'black'}} key={'all'}>
+        	{all}
+        </View>
     );
 };
 const styles = StyleSheet.create({
@@ -210,5 +240,17 @@ const styles = StyleSheet.create({
 		padding: 5,
 		minHeight: 30,
 		color: 'white',
+	},
+	boxCard: {
+		color: 'white',
+		backgroundColor: '#3035f5',
+		width: 35,
+		height: 45,
+		marginLeft: 2.5,
+		marginRight: 2.5,
+		marginTop: 5,
+		borderRadius: 10,
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 });

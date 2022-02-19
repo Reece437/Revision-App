@@ -26,8 +26,8 @@ export default function Play({route, navigation}) {
 		try {
 		for (let i = 0; i < data.length;
 		i++) {
-			if (data[i].question == '' ||
-			data[i].answer == '') {
+			if ((data[i].question).replace(/&nbsp;/g, '').replace('<div></div>', '') == '' ||
+			(data[i].answer).replace(/&nbsp;/g, '').replace('<div></div>', '') == '') {
 				continue;
 			} else {
 				corrected.push(data[i]);
@@ -55,16 +55,16 @@ export default function Play({route, navigation}) {
 		if (data.length == 0) {
 			return (
 				<View style={{flex: 1, backgroundColor: 'black'}}>
-				<View style={styles.box}>
-					<Text style={{fontSize: 30, color: 'white'}}>You have no cards in this set that have both a question, and an answer.
+				<View style={[styles.box, {justifyContent: 'center', alignItems: 'center'}]}>
+					<Text style={{fontSize: 40, color: 'white'}}>You have no cards in this set that have both a question, and an answer.
 					Please create some cards that meet this criteria.</Text>
 				</View>
 				</View>
 			);
 		}
 		let source = {
-			html: !showAnswer ? `<div style='color: white; font-size: 50px; padding: 5px;'>${(data[n].question).replace(/<img style='width: 110px; height: 110px;'/g, "<img style='width: 150px; height: 150px;'")}</div>` :
-			`<div style='color: white; font-size: 50px; padding: 5px;'>${(data[n].answer).replace(/<img style='width: 110px; height: 110px;'/g, "<img style='width: 150px; height: 150px;'")}</div>`
+			html: !showAnswer ? `<div style='color: white; font-size: 40px; padding: 5px;'>${(data[n].question).replace(/<img style='width: 110px; height: 110px;'/g, "<img style='width: 150px; height: 150px;'")}</div>` :
+			`<div style='color: white; font-size: 40px; padding: 5px;'>${(data[n].answer).replace(/<img style='width: 110px; height: 110px;'/g, "<img style='width: 150px; height: 150px;'")}</div>`
 		};
 		return (
 			<View style={{flex: 1, backgroundColor: 'black'}}>
@@ -120,7 +120,7 @@ export default function Play({route, navigation}) {
 	const FinishedScreen = () => {
 		return (
 			<View style={{flex: 1, backgroundColor: 'black'}}>
-			<View style={styles.box}>
+			<View style={[styles.box, {justifyContent: 'center', alignItems: 'center'}]}>
 				<Text style={{fontSize: 32, color: '#0bb002'}}>You got {correct} correct.</Text>
 				<Text style={{fontSize: 32, color: '#dc0000'}}>You got {incorrect} incorrect.</Text>
 				<TouchableOpacity style={styles.retry}
@@ -153,15 +153,13 @@ export default function Play({route, navigation}) {
 const styles = StyleSheet.create({
 	box: {
 		position: 'absolute',
-		top: '10%',
-		left: '10%',
-		width: '80%',
-		height: '80%',
+		top: '5%',
+		left: '5%',
+		width: '90%',
+		height: '85%',
 		borderWidth: 2,
 		borderRadius: 10,
 		borderColor: 'white',
-		justifyContent: 'center',
-		alignItems: 'center',
 	},
 	check: {
 		position: 'absolute',
