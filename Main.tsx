@@ -1,17 +1,29 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, Dimensions, ListItem, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import { Alert, TouchableWithoutFeedback, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function App({navigation}) {
+	const [selectionBox, setSelectionBox] = useState(false);
 	const [noCards, setNoCards] = useState(false);
 	const [, updateState] = React.useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	const [storageItems, setStorageItems] = useState();
 	const [render, setRender] = useState(false);
 	
-  	const RevisionCard = (data, index) => {
-	//console.log('data ' + data[index]);
+	const CheckBox = (props: {value: boolean, onPress: function, style: object}) => {
+		if (!props.value) {
+			props.value = false;
+		}
+		return (
+			<TouchableOpacity onPress={props.onPress}
+			style={[{width: 20, height: 20, borderWidth: 1, borderColor: 'white'}, props.style || null]}>
+				<Text style={{color: 'white'}}>{props.value ? '/' : ''}</Text>
+			</TouchableOpacity>
+		);
+	}
+  	const RevisionCard = (data: object[], index: number) => {
+	const [value, setValue] = useState(false);
 	if (data[index].title == '' ) {
 		data[index].title = 'Untitled';
 		AsyncStorage.setItem('revisionCards', JSON.stringify(data));
@@ -34,9 +46,10 @@ export default function App({navigation}) {
   				style={styles.Card}>
   				<View>
 					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
+					{selectionBox ? <CheckBox value={value} onPress={() => setValue(!value)} style={{marginLeft: 5}} /> : null}
 					<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
 				</View>
-				<View>
+				{!selectionBox ? <View>
 				<TouchableOpacity
 					style={styles.trash}
 					onPress={() => {
@@ -69,8 +82,6 @@ export default function App({navigation}) {
 					}}>
 						<Text style={{fontSize: 30}}>🗑</Text>
 					</TouchableOpacity>
-				</View>
-				<View >
 					<TouchableOpacity 
 					style={styles.playButton}
 					onPress={() => navigation.navigate('Play', {
@@ -78,8 +89,6 @@ export default function App({navigation}) {
 					})}>
 						<Text style={{fontSize: 40, color: 'white'}}>▶</Text>
 					</TouchableOpacity>
-				</View>
-				<View>
 					<TouchableOpacity 
 					style={styles.editButton}
 					onPress={() => navigation.navigate('Other', {
@@ -88,7 +97,7 @@ export default function App({navigation}) {
 					})}>
 						<Text style={{fontSize: 30}}>✏️</Text>
 					</TouchableOpacity>
-				</View>
+				</View> : null}
 			</View>
 		);
 	}
@@ -114,7 +123,7 @@ export default function App({navigation}) {
   		return(<Text style={{color: 'white'}}>Error</Text>)
   	}
   }
-	const addLocalStorageItems = () => {
+	const addLocalStorageItems = (): void => {
 		if (noCards) {
 			AsyncStorage.clear()
 			AsyncStorage.setItem('revisionCards', JSON.stringify([]));
@@ -134,7 +143,8 @@ export default function App({navigation}) {
 		});
 	}
 	const mergeCardSets = () => {
-		return;
+		setSelectionBox(true);
+		//return;
 	}
 	useEffect(() => {
 		navigation.addListener('focus', () => {
@@ -145,22 +155,26 @@ export default function App({navigation}) {
   				}
 				setStorageItems(data);
 			})
+			setRender(false);
 			forceUpdate();
 		});
 	});
 	return (
 		<View style={styles.container}>
 			<AllCards />
-			<TouchableOpacity 
-			style={styles.addButton}
+			<TouchableNativeFeedback
+			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, )}
 			onPress={() => setRender(!render)}>
+			<View style={styles.addButton}>
 				<Text style={styles.addButtonText}>+</Text>
-			</TouchableOpacity>
-			{render ? <TouchableOpacity style={styles.addSecondary}
+			</View>
+			</TouchableNativeFeedback>
+			{render && !selectionBox ? <TouchableOpacity style={styles.addSecondary}
 			onPress={() => addLocalStorageItems()}>
 				<Text style={{textAlign: 'center'}}>New</Text>
 			</TouchableOpacity> : null}
-			{render ? <TouchableOpacity style={styles.addTertiary}>
+			{render && !selectionBox ? <TouchableOpacity style={styles.addTertiary}
+			onPress={() => {setSelectionBox(true); setRender(false)}}>
 				<Text style={{textAlign: 'center'}}>Merge</Text>
 			</TouchableOpacity> : null}
 			<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />
@@ -183,7 +197,8 @@ const styles = StyleSheet.create({
   	backgroundColor: '#64daf8',
   	width: 100,
   	height: 100,
-  	borderRadius: 50
+  	borderRadius: 50,
+  	overflow: 'hidden'
   },
   addButtonText: {
   	textAlign: 'center',
@@ -225,7 +240,7 @@ const styles = StyleSheet.create({
 	addButton1: {
 		position: 'absolute',
 		bottom: '15%',
-		right: 35
+		right: 35,
 	},
 	addButton2: {
 		position: 'absolute',
