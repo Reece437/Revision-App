@@ -11,14 +11,20 @@ export default function App({navigation}) {
 	const [storageItems, setStorageItems] = useState();
 	const [render, setRender] = useState(false);
 	
-	const CheckBox = (props: {value: boolean, onPress: function, style: object}) => {
+	interface CheckBoxParameters {
+		value: boolean;
+		style: object;
+		onClick: () => void;
+		checkedBackgroundColor: string;
+	}
+	const CheckBox: React.FC = (props: CheckBoxParameters) => {
 		if (!props.value) {
 			props.value = false;
 		}
 		return (
-			<TouchableOpacity onPress={props.onPress}
-			style={[{width: 20, height: 20, borderWidth: 1, borderColor: 'white'}, props.style || null]}>
-				<Text style={{color: 'white'}}>{props.value ? '/' : ''}</Text>
+			<TouchableOpacity onPress={props.onClick}
+			style={[{width: 40, height: 40, borderWidth: 1, borderColor: 'white', justifyContent: 'center', alignItems: 'center'}, {backgroundColor: props.value ? props.checkedBackgroundColor || 'blue' : null}, props.style || null]}>
+				<Text style={{color: 'white', textAlign: 'center', fontSize: 25}}>{props.value ? '✓' : ''}</Text>
 			</TouchableOpacity>
 		);
 	}
@@ -46,7 +52,7 @@ export default function App({navigation}) {
   				style={styles.Card}>
   				<View>
 					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
-					{selectionBox ? <CheckBox value={value} onPress={() => setValue(!value)} style={{marginLeft: 5}} /> : null}
+					{selectionBox ? <CheckBox value={value} onClick={() => setValue(!value)} style={{marginLeft: 5}} /> : null}
 					<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
 				</View>
 				{!selectionBox ? <View>
@@ -116,6 +122,16 @@ export default function App({navigation}) {
 				for (let i = 0; i < len; i++) {
   					x.push(<View key={i}>{RevisionCard(storageItems, i)}</View>)
   				}
+  				if (selectionBox) {
+  					return (
+  						<View style={{flex: 1}}>
+  							<TouchableOpacity onPress={() => setSelectionBox(false)}>
+  								<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
+  							</TouchableOpacity>
+  							<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
+  						</View>
+  					);
+  				}
   				return(<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>);
 			}
 	} catch(err) {
@@ -156,14 +172,14 @@ export default function App({navigation}) {
 				setStorageItems(data);
 			})
 			setRender(false);
-			forceUpdate();
+			//forceUpdate();
 		});
 	});
 	return (
 		<View style={styles.container}>
 			<AllCards />
 			<TouchableNativeFeedback
-			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, )}
+			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
 			onPress={() => setRender(!render)}>
 			<View style={styles.addButton}>
 				<Text style={styles.addButtonText}>+</Text>
