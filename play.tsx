@@ -21,7 +21,7 @@ export default function Play({route, navigation}) {
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	const [cards, setCards] = useState([]);
 
-	const removeUnfinishedCards = data => {
+	const removeUnfinishedCards = (data): object[] => {
 		let corrected: object[] = [];
 		try {
 		for (let i = 0; i < data.length;
@@ -38,11 +38,11 @@ export default function Play({route, navigation}) {
 		}
 		return corrected;
 	}
-	const shuffle = array => {
+	const shuffle = (array): any => {
 		array.sort(() => Math.random() - 0.5);
 		return array;
 	}
-	const Retry = () => {
+	const Retry = (): void => {
 		setN(0);
 		setShowAnswer(false);
 		setCorrect(0);
@@ -131,7 +131,7 @@ export default function Play({route, navigation}) {
 			</View>
 		);
 	}
-	const displayContent = () => {
+	const displayContent = (): void => {
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			setCards(shuffle(removeUnfinishedCards(data[route.params.i].card)));

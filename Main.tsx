@@ -5,11 +5,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App({navigation}) {
 	const [selectionBox, setSelectionBox] = useState(false);
+	const [mergeItems, setMergeItems] = useState([]);
 	const [noCards, setNoCards] = useState(false);
 	const [, updateState] = React.useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	const [storageItems, setStorageItems] = useState();
 	const [render, setRender] = useState(false);
+	const [reRender, setReRender] = useState(true);
+	
 	
 	interface CheckBoxParameters {
 		value: boolean;
@@ -52,7 +55,25 @@ export default function App({navigation}) {
   				style={styles.Card}>
   				<View>
 					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
-					{selectionBox ? <CheckBox value={value} onClick={() => setValue(!value)} style={{marginLeft: 5}} /> : null}
+					{selectionBox ? <CheckBox value={value} onClick={() => {
+						let y = !value;
+						if (y) {
+							let x = mergeItems;
+							x.push(index);
+							setMergeItems(x); 
+						} else {
+							let x = mergeItems;
+							for (let i: number = 0; i < x.length; i++) {
+								if (x[i] == index) {
+									x.splice(i, 1);
+									break;
+								}
+							}
+							setMergeItems(x);
+						}
+						setValue(!value);
+						console.log(mergeItems);
+					}} style={{marginLeft: 5}} /> : null}
 					<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
 				</View>
 				{!selectionBox ? <View>
@@ -125,7 +146,7 @@ export default function App({navigation}) {
   				if (selectionBox) {
   					return (
   						<View style={{flex: 1}}>
-  							<TouchableOpacity onPress={() => setSelectionBox(false)}>
+  							<TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
   								<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
   							</TouchableOpacity>
   							<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
@@ -145,6 +166,8 @@ export default function App({navigation}) {
 			AsyncStorage.setItem('revisionCards', JSON.stringify([]));
 			setNoCards(false);
 		}
+		setRender(false);
+		setReRender(true);
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			data.push({
@@ -159,32 +182,58 @@ export default function App({navigation}) {
 		});
 	}
 	const mergeCardSets = () => {
-		setSelectionBox(true);
-		//return;
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			mergeItems.sort();
+			let newCardSet = {
+				title: 'Merged Card set',
+				description: 'This card set is other sets merged together'
+			};
+			newCardSet.card = [];
+			for (let i: number = 0; i < mergeItems.length; i++) {
+				for (let j: number = 0; j < data[mergeItems[i]].card.length; j++) {
+					newCardSet.card.push(data[mergeItems[i]].card[j]);
+				}
+			}
+			console.log(newCardSet);
+			data.push(newCardSet);
+			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+		})
 	}
+	/*useEffect(() => {
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			if (data.length == 0 || data.length == undefined) {
+  				setNoCards(true);
+  			}
+			setStorageItems(data);
+		})
+		setRender(false);
+	}, [])*/
 	useEffect(() => {
 		navigation.addListener('focus', () => {
-			AsyncStorage.getItem('revisionCards').then(data => {
-				data = JSON.parse(data);
-				if (data.length == 0 || data.length == undefined) {
-  					setNoCards(true);
-  				}
-				setStorageItems(data);
-			})
-			setRender(false);
-			//forceUpdate();
+			if (reRender) {
+				AsyncStorage.getItem('revisionCards').then(data => {
+					data = JSON.parse(data);
+					if (data.length == 0 || data.length == undefined) {
+  						setNoCards(true);
+					}
+					setStorageItems(data);
+				})
+				setReRender(false);
+			}
 		});
 	});
 	return (
 		<View style={styles.container}>
 			<AllCards />
-			<TouchableNativeFeedback
+			{!selectionBox ? <TouchableNativeFeedback
 			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
 			onPress={() => setRender(!render)}>
 			<View style={styles.addButton}>
 				<Text style={styles.addButtonText}>+</Text>
 			</View>
-			</TouchableNativeFeedback>
+			</TouchableNativeFeedback> : null}
 			{render && !selectionBox ? <TouchableOpacity style={styles.addSecondary}
 			onPress={() => addLocalStorageItems()}>
 				<Text style={{textAlign: 'center'}}>New</Text>
@@ -193,6 +242,9 @@ export default function App({navigation}) {
 			onPress={() => {setSelectionBox(true); setRender(false)}}>
 				<Text style={{textAlign: 'center'}}>Merge</Text>
 			</TouchableOpacity> : null}
+			<TouchableOpacity onPress={() => mergeCardSets()}>
+				<Text style={{color: 'white'}}>Merge</Text>
+			</TouchableOpacity>
 			<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />
 		</View>
 	);
@@ -221,7 +273,7 @@ const styles = StyleSheet.create({
   	fontSize: 60
   },
   Card: {
-  	borderWidth: 1,
+  	borderWidth: 2,
   	borderColor: 'white',
   	margin: 5,
   	borderRadius: 10

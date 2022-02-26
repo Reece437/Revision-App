@@ -1,6 +1,5 @@
 import React, {useRef, useState, useCallback, useEffect} from "react";
 import {TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
-//import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
 
@@ -15,8 +14,7 @@ export default function TempScreen({route, navigation}) {
 	const [, updateState] = useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	
-	
-	const BoxCards = props => {
+	const BoxCards = (props: {data: object[]}) => {
 		console.log('data ' + props.data);
 		let len: number = props.data[route.params.i].card.length;
 		let x: any = [];
@@ -31,17 +29,18 @@ export default function TempScreen({route, navigation}) {
 			<ScrollView horizontal={true} style={{flexGrow: 0.001}}>{x}</ScrollView>
 		);
 	}
-	const CreateCardInterface = props => {
+	interface CardInterface {
+		data: object[];
+		index: number;
+	}
+	const CreateCardInterface = (props: CardInterface) => {
 		const data = props.data;
 		const index = props.index
 		const [title, setTitle] = useState(data[route.params.i].title);
 		const [description, setDescription] = useState(data[route.params.i].description);
 		const [question, setQuestion] = useState(data[route.params.i].card[index].question);
 		const [answer, setAnswer] = useState(data[route.params.i].card[index].answer);
-		const [selection, setSelection] = useState({
-			start: data[route.params.i].card[index].answer.length,
-			end: data[route.params.i].card[index].answer.length
-		});
+		
 		return (
 		<View style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5, flex: 1}}>
             <Text style={{textAlign: 'center', fontSize: 30, color: 'white'}}>Card No. {n + 1} {'\n'}
@@ -52,7 +51,6 @@ export default function TempScreen({route, navigation}) {
 				left: 5,
 			}} onPress={() => {
 				setN(n - 1)
-				//displayContent();
 			}}>
 				<Text style={{fontSize: 20, color: '#56ddfe'}}>Previous</Text>
 			</TouchableOpacity> : null}
@@ -62,22 +60,18 @@ export default function TempScreen({route, navigation}) {
 				right: 5,
 			}} onPress={() => {
 				setN(n + 1);
-				//displayContent();
 			}}>
 				<Text style={{fontSize: 20, color: '#56ddfe'}}>Next</Text>
 			</TouchableOpacity>
 			<TouchableOpacity onPress={() => {
 				data[route.params.i].card.splice(index, 1);
 				AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-				if (n + 1 < data[route.params.i].card.length) {
-					setN(n + 1)
-				} else {
-					if (n != 0 && n == data[route.params.i].card.length) {
-						setN(n - 1)
-					}
-					else setCount(count + 1)
+				if (n != 0) {
+					setN(n - 1)
 				}
-			}}>
+				else setCount(count + 1)
+				}
+			}>
     			<Text style={{textAlign: 'right', fontSize: 25}}>🗑</Text>
     		</TouchableOpacity>
     		<BoxCards data={data}/>
@@ -187,7 +181,7 @@ export default function TempScreen({route, navigation}) {
         </View>
 		);
 	}
-	const displayContent = () => {
+	const displayContent = (): void => {
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			if (!data[route.params.i].card) {
@@ -202,9 +196,8 @@ export default function TempScreen({route, navigation}) {
 					answer: ''
 				})
 			}
-			console.log(data);
 			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-			setAll(<CreateCardInterface key={'90'} data={data} index={n} />);
+			setAll(<CreateCardInterface data={data} index={n} />);
 		})
 	}
 	useEffect(() => {
