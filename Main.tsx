@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, TouchableWithoutFeedback, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useState, useEffect, useCallback} from 'react';
+import { Alert, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { SearchBar } from './SearchBar.tsx';
 
 export default function App({navigation}) {
 	const [selectionBox, setSelectionBox] = useState(false);
@@ -13,12 +13,73 @@ export default function App({navigation}) {
 	const [render, setRender] = useState(false);
 	const [reRender, setReRender] = useState(true);
 	
+	const NoResult = () => {
+		return (
+			<View style={styles.Card}>
+				<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No result</Text>
+				<Text style={{padding: 5, color: 'white'}}>There aren't any card sets with this title</Text>
+			</View>	
+		);
+	}
+	const removeUntitled = (data) => {
+		try {
+			for (let i = 0; i < data.length; i++) {
+				if (data[i].title == '') {
+					data[i].title = "Untitled";
+				}
+			} return data;
+		} catch(err) {
+			return data;
+		}
+	}
 	
+	const duplicateCheck = (data): object[] => {
+		let n: number = 1;
+		data = removeUntitled(data);
+		try {
+			for (let i = 0; i < data.length; i++) {
+				n = 1
+				if (data[i].title == '') data[i].title = 'Untitled';
+				for (let j = i + 1; j < data.length; j++) {
+					if (data[i].title == data[j].title) {
+						data[j].title += ` [${n}]`;
+						n++
+					}
+				}
+			}
+		} catch(err) {
+			//console.log(err.message);
+			return data;
+		}
+		return data;
+	}
+	const isMergable = (data, index: number): boolean => {
+		for (let i = 0; i < data[index].card.length; i++) {
+			if (data[index].card[i].question != '' ||
+			data[index].card[i].answer != '') return true;
+		} return false;
+	}
+	const updateStorageItems = (): void => {
+		AsyncStorage.getItem('revisionCards').then(data => {
+			data = JSON.parse(data);
+			console.log(data.length);
+			try {
+				if (data.length == 0 || data.length == undefined) {
+	  				console.log("yes");
+	  				setNoCards(true);
+				}
+			} catch(err) {
+				console.log("error");
+				setNoCards(true);
+			}
+			setStorageItems(duplicateCheck(data));
+		})
+	}
 	interface CheckBoxParameters {
 		value: boolean;
-		style: object;
-		onClick: () => void;
-		checkedBackgroundColor: string;
+		style?: object;
+		onClick?: () => void;
+		checkedBackgroundColor?: string;
 	}
 	const CheckBox: React.FC = (props: CheckBoxParameters) => {
 		if (!props.value) {
@@ -31,31 +92,37 @@ export default function App({navigation}) {
 			</TouchableOpacity>
 		);
 	}
-  	const RevisionCard = (data: object[], index: number) => {
+  	const RevisionCard = (props) => {
+	let data = props.data;
+	console.log('data in func ' + typeof(data));
+	let index = props.index;
 	const [value, setValue] = useState(false);
+	const [renderComponent, setRenderComponent] = useState(true);
+	
+	// This is used to stop the search bar from emptying on removal of card set
+	if (renderComponent) {  
 	if (data[index].title == '' ) {
 		data[index].title = 'Untitled';
-		AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+		//AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 	}
 	if (data[index].description == '' ) {
 		data[index].description = "You didn't give me a description";
-		AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+		//AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 	}
-	if (noCards) {
+	if (data.length == undefined) {
 		return (
-			<View 
-  			style={styles.Card}>
-					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
-					<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
+			<View style={styles.Card}>
+					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No card sets</Text>
+					<Text style={{padding: 5, color: 'white'}}>Please create some card sets</Text>
 			</View>	
 		);
 	} else {
 		return (
-			<View 
-  				style={styles.Card}>
+			<View style={styles.Card}>
   				<View>
 					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
-					{selectionBox ? <CheckBox value={value} onClick={() => {
+					{selectionBox ?  
+					(isMergable(data, index) ? <CheckBox value={value} onClick={() => {
 						let y = !value;
 						if (y) {
 							let x = mergeItems;
@@ -73,7 +140,7 @@ export default function App({navigation}) {
 						}
 						setValue(!value);
 						console.log(mergeItems);
-					}} style={{marginLeft: 5}} /> : null}
+					}} style={{marginLeft: 5}} /> : <Text style={{color: 'white', paddingLeft: 5}}>No cards in this set</Text>) : null}
 					<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
 				</View>
 				{!selectionBox ? <View>
@@ -91,12 +158,13 @@ export default function App({navigation}) {
 										AsyncStorage.setItem('revisionCards', JSON.stringify(data));
 										AsyncStorage.getItem('revisionCards').then(list => {
 											list = JSON.parse(list)
-											console.log(list.length)
+											//console.log(list.length)
 											if (list.length == 0) {
 												setNoCards(true);
 											}
 										})
-										forceUpdate();
+										setRenderComponent(false);
+										//updateStorageItems();
 									}
 								},
 								{
@@ -128,44 +196,80 @@ export default function App({navigation}) {
 			</View>
 		);
 	}
+	} else {
+		return false;
+	}
   }
   const AllCards = () => {
+  	const [searchText, setSearchText] = useState("");
+  	let data = storageItems;
+  	console.log(noCards)
   	let x: object[] = [];
   	try {
-			let len: number = storageItems.length;
-			console.log(len)
-			if (len == 0) {
-				return(<ScrollView style={{flexGrow: 0.8}}>{RevisionCard([{
+		let len: number = storageItems.length;
+		//console.log(len)
+		if (len == 0) {
+			return (
+				<ScrollView style={{flexGrow: 0.8}}>{RevisionCard([{
 					title: 'No card sets',
 					description: 'Please create some card sets'
-				}], 0)}</ScrollView>)
-			} else {
-				for (let i = 0; i < len; i++) {
-  					x.push(<View key={i}>{RevisionCard(storageItems, i)}</View>)
-  				}
-  				if (selectionBox) {
-  					return (
-  						<View style={{flex: 1}}>
-  							<TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
-  								<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
-  							</TouchableOpacity>
-  							<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
+				}], 0)}</ScrollView>);
+		} else {
+			for (let i = 0; i < len; i++) {
+				if ((data[i].title.toLowerCase()).includes(searchText.toLowerCase())) {
+					x.push(<RevisionCard key={i} data={storageItems} index={i} />);
+				}
+  			}
+  			if (x.length == 0) {
+  				x.push(<NoResult />)
+  			}
+  			if (selectionBox) {
+  				return (
+  					<View style={{flex: 1}}>
+  						<TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
+  							<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
+  						</TouchableOpacity>
+  						<View style={{margin: 5, paddingBottom: 40}}>
+  							<SearchBar 
+  								onTextChange={newText => {
+  									setSearchText(newText.toLowerCase());
+  								}}
+  								value={searchText}
+  							/>
   						</View>
-  					);
-  				}
-  				return(<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>);
-			}
+  						<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
+  					</View>
+  				);
+  			}
+  			return (
+  				<View style={{flex: 1}}>
+  					<View style={{margin: 5, paddingBottom: 40}}>
+  						<SearchBar 
+  							onTextChange={newText => {
+  								setSearchText(newText);
+  							}}
+  							value={searchText}
+  						/>
+  					</View>
+  					<ScrollView style={{flexGrow: 0.8}}>
+  						{x}
+  					</ScrollView>
+  				</View>
+  			);
+		}
 	} catch(err) {
-  		console.log(err.message)
-  		return(<Text style={{color: 'white'}}>Error</Text>)
+  		console.log(err.message);
+  		setNoCards(true)
+  		return (
+  			<View style={styles.Card}>
+				<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No card sets</Text>
+				<Text style={{padding: 5, color: 'white'}}>Please create some card sets</Text>
+			</View>	
+		);
   	}
   }
 	const addLocalStorageItems = (): void => {
-		if (noCards) {
-			AsyncStorage.clear()
-			AsyncStorage.setItem('revisionCards', JSON.stringify([]));
-			setNoCards(false);
-		}
+		setNoCards(false);
 		setRender(false);
 		setReRender(true);
 		AsyncStorage.getItem('revisionCards').then(data => {
@@ -182,12 +286,17 @@ export default function App({navigation}) {
 		});
 	}
 	const mergeCardSets = () => {
+		if (mergeItems.length <= 1) {
+			alert("You haven't selected enough sets to merge");
+			return;
+		}
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			mergeItems.sort();
+			//console.log(mergeItems);
 			let newCardSet = {
-				title: 'Merged Card set',
-				description: 'This card set is other sets merged together'
+				title: 'Merged card set',
+				description: 'This is a merged card set'
 			};
 			newCardSet.card = [];
 			for (let i: number = 0; i < mergeItems.length; i++) {
@@ -195,31 +304,17 @@ export default function App({navigation}) {
 					newCardSet.card.push(data[mergeItems[i]].card[j]);
 				}
 			}
-			console.log(newCardSet);
-			data.push(newCardSet);
+    		data.push(newCardSet);
 			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-		})
-	}
-	/*useEffect(() => {
-		AsyncStorage.getItem('revisionCards').then(data => {
-			data = JSON.parse(data);
-			if (data.length == 0 || data.length == undefined) {
-  				setNoCards(true);
-  			}
 			setStorageItems(data);
 		})
-		setRender(false);
-	}, [])*/
+		setMergeItems([]);
+		setSelectionBox(false);
+	}
 	useEffect(() => {
 		navigation.addListener('focus', () => {
 			if (reRender) {
-				AsyncStorage.getItem('revisionCards').then(data => {
-					data = JSON.parse(data);
-					if (data.length == 0 || data.length == undefined) {
-  						setNoCards(true);
-					}
-					setStorageItems(data);
-				})
+				updateStorageItems();
 				setReRender(false);
 			}
 		});
@@ -236,20 +331,30 @@ export default function App({navigation}) {
 			</TouchableNativeFeedback> : null}
 			{render && !selectionBox ? <TouchableOpacity style={styles.addSecondary}
 			onPress={() => addLocalStorageItems()}>
-				<Text style={{textAlign: 'center'}}>New</Text>
+				<Text style={{textAlign: 'center', fontWeight: 'bold'}}>NEW</Text>
 			</TouchableOpacity> : null}
 			{render && !selectionBox ? <TouchableOpacity style={styles.addTertiary}
-			onPress={() => {setSelectionBox(true); setRender(false)}}>
-				<Text style={{textAlign: 'center'}}>Merge</Text>
+			onPress={() => {
+				if (storageItems.length <= 1) {
+					alert("You don't have enough card sets to use the merge feature");
+					setRender(false);
+				} else {
+					setSelectionBox(true); setRender(false)
+				}
+			}}>
+				<Text style={{textAlign: 'center', fontWeight: 'bold'}}>MERGE</Text>
 			</TouchableOpacity> : null}
-			<TouchableOpacity onPress={() => mergeCardSets()}>
-				<Text style={{color: 'white'}}>Merge</Text>
-			</TouchableOpacity>
+			{selectionBox ? <TouchableNativeFeedback
+			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
+			onPress={() => mergeCardSets()}>
+			<View style={styles.addButton}>
+				<Text style={[styles.addButtonText, {fontSize: 20, paddingTop: 30, fontWeight: 'bold'}]}>MERGE</Text>
+			</View>
+			</TouchableNativeFeedback> : null}
 			<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />
 		</View>
 	);
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -270,7 +375,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
   	textAlign: 'center',
-  	fontSize: 60
+  	fontSize: 60,
   },
   Card: {
   	borderWidth: 2,
@@ -337,5 +442,5 @@ const styles = StyleSheet.create({
 		height: 50,
 		alignItems: 'center',
 		justifyContent: 'center'
-	}
+	},
 });

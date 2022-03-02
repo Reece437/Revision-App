@@ -45,23 +45,14 @@ export default function TempScreen({route, navigation}) {
 		<View style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5, flex: 1}}>
             <Text style={{textAlign: 'center', fontSize: 30, color: 'white'}}>Card No. {n + 1} {'\n'}
 			<Text style={{fontSize: 12, color: 'white'}}>Total number of cards: {data[route.params.i].card.length}</Text></Text>
-            {n != 0 ? <TouchableOpacity style={{
-				position: 'absolute',
-				top: 5,
-				left: 5,
-			}} onPress={() => {
-				setN(n - 1)
-			}}>
-				<Text style={{fontSize: 20, color: '#56ddfe'}}>Previous</Text>
-			</TouchableOpacity> : null}
-			<TouchableOpacity style={{
+            <TouchableOpacity style={{
 				position: 'absolute',
 				top: 5,
 				right: 5,
 			}} onPress={() => {
-				setN(n + 1);
+				setN(data[route.params.i].card.length);
 			}}>
-				<Text style={{fontSize: 20, color: '#56ddfe'}}>Next</Text>
+				<Text style={{fontSize: 20, color: '#56ddfe'}}>New</Text>
 			</TouchableOpacity>
 			<TouchableOpacity onPress={() => {
 				data[route.params.i].card.splice(index, 1);
