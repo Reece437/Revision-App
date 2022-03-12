@@ -13,19 +13,31 @@ export default function App({navigation}) {
 	const [render, setRender] = useState(false);
 	const [reRender, setReRender] = useState(true);
 	
-	const NoResult = () => {
-		return (
-			<View style={styles.Card}>
-				<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No result</Text>
-				<Text style={{padding: 5, color: 'white'}}>There aren't any card sets with this title</Text>
-			</View>	
-		);
-	}
+	// For testing purposes only 
+	const ResetStorage: React.FC = () => (
+		<TouchableOpacity style={styles.reset} 
+		onPress={() => {
+			AsyncStorage.clear()
+			setNoCards(true);
+		}}>
+			<Text style={{color: 'white'}}>Clear</Text>
+		</TouchableOpacity>
+	);
+	
+	const NoResult = () => (
+		<View style={styles.Card}>
+			<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No result</Text>
+			<Text style={{padding: 5, color: 'white'}}>There aren't any card sets with this title</Text>
+		</View>	
+	);
 	const removeUntitled = (data) => {
 		try {
 			for (let i = 0; i < data.length; i++) {
 				if (data[i].title == '') {
 					data[i].title = "Untitled";
+				}
+				if (data[i].description == '') {
+					data[i].description = 'You didn\'t give me a description';
 				}
 			} return data;
 		} catch(err) {
@@ -62,7 +74,7 @@ export default function App({navigation}) {
 	const updateStorageItems = (): void => {
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
-			console.log(data.length);
+			//console.log(data.length);
 			try {
 				if (data.length == 0 || data.length == undefined) {
 	  				console.log("yes");
@@ -70,6 +82,7 @@ export default function App({navigation}) {
 				}
 			} catch(err) {
 				console.log("error");
+				AsyncStorage.setItem('revisionCards', JSON.stringify([]));
 				setNoCards(true);
 			}
 			setStorageItems(duplicateCheck(data));
@@ -101,14 +114,6 @@ export default function App({navigation}) {
 	
 	// This is used to stop the search bar from emptying on removal of card set
 	if (renderComponent) {  
-	if (data[index].title == '' ) {
-		data[index].title = 'Untitled';
-		//AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-	}
-	if (data[index].description == '' ) {
-		data[index].description = "You didn't give me a description";
-		//AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-	}
 	if (data.length == undefined) {
 		return (
 			<View style={styles.Card}>
@@ -186,10 +191,12 @@ export default function App({navigation}) {
 					</TouchableOpacity>
 					<TouchableOpacity 
 					style={styles.editButton}
-					onPress={() => navigation.navigate('Other', {
-						i: index,
-						n: 0,
-					})}>
+					onPress={() => {
+						navigation.navigate('Other', {
+							i: index,
+							n: data[index].card.length - 1
+						})
+					}}>
 						<Text style={{fontSize: 30}}>✏️</Text>
 					</TouchableOpacity>
 				</View> : null}
@@ -322,6 +329,7 @@ export default function App({navigation}) {
 	return (
 		<View style={styles.container}>
 			<AllCards />
+			<ResetStorage />
 			{!selectionBox ? <TouchableNativeFeedback
 			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
 			onPress={() => setRender(!render)}>
@@ -443,4 +451,9 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
+	reset: {
+		position: 'absolute',
+		left: '10%',
+		bottom: '10%'
+	}
 });
