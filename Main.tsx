@@ -1,80 +1,44 @@
 import React, { useState, useEffect, useCallback} from 'react';
 import { Alert, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SearchBar } from './SearchBar.tsx';
+import { SearchBar, CheckBox } from './components/MainComponents';
+import {
+	isMergable,
+	removeUntitled,
+	titleLengthFix,
+	duplicateCheck
+} from './functions/MainFunctions';
 
 export default function App({navigation}) {
 	const [selectionBox, setSelectionBox] = useState(false);
 	const [mergeItems, setMergeItems] = useState([]);
 	const [noCards, setNoCards] = useState(false);
 	const [, updateState] = React.useState();
-	const forceUpdate = React.useCallback(() => updateState({}), []);
+	//const forceUpdate = React.useCallback(() => updateState({}), []);
 	const [storageItems, setStorageItems] = useState();
 	const [render, setRender] = useState(false);
 	const [reRender, setReRender] = useState(true);
 	
-	// For testing purposes only 
+	// For debugging purposes only 
 	const ResetStorage: React.FC = () => (
 		<TouchableOpacity style={styles.reset} 
 		onPress={() => {
-			AsyncStorage.clear()
+			AsyncStorage.setItem('revisionCards', JSON.stringify([]));
 			setNoCards(true);
+			updateStorageItems();
 		}}>
 			<Text style={{color: 'white'}}>Clear</Text>
 		</TouchableOpacity>
 	);
-	
-	const NoResult = () => (
+	const NoResult: React.FC = () => (
 		<View style={styles.Card}>
 			<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No result</Text>
 			<Text style={{padding: 5, color: 'white'}}>There aren't any card sets with this title</Text>
 		</View>	
 	);
-	const removeUntitled = (data) => {
-		try {
-			for (let i = 0; i < data.length; i++) {
-				if (data[i].title == '') {
-					data[i].title = "Untitled";
-				}
-				if (data[i].description == '') {
-					data[i].description = 'You didn\'t give me a description';
-				}
-			} return data;
-		} catch(err) {
-			return data;
-		}
-	}
-	
-	const duplicateCheck = (data): object[] => {
-		let n: number = 1;
-		data = removeUntitled(data);
-		try {
-			for (let i = 0; i < data.length; i++) {
-				n = 1
-				if (data[i].title == '') data[i].title = 'Untitled';
-				for (let j = i + 1; j < data.length; j++) {
-					if (data[i].title == data[j].title) {
-						data[j].title += ` [${n}]`;
-						n++
-					}
-				}
-			}
-		} catch(err) {
-			//console.log(err.message);
-			return data;
-		}
-		return data;
-	}
-	const isMergable = (data, index: number): boolean => {
-		for (let i = 0; i < data[index].card.length; i++) {
-			if (data[index].card[i].question != '' ||
-			data[index].card[i].answer != '') return true;
-		} return false;
-	}
 	const updateStorageItems = (): void => {
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
-			//console.log(data.length);
 			try {
 				if (data.length == 0 || data.length == undefined) {
 	  				console.log("yes");
@@ -85,209 +49,204 @@ export default function App({navigation}) {
 				AsyncStorage.setItem('revisionCards', JSON.stringify([]));
 				setNoCards(true);
 			}
-			setStorageItems(duplicateCheck(data));
+			setStorageItems(titleLengthFix(duplicateCheck(data)));
 		})
 	}
-	interface CheckBoxParameters {
-		value: boolean;
-		style?: object;
-		onClick?: () => void;
-		checkedBackgroundColor?: string;
-	}
-	const CheckBox: React.FC = (props: CheckBoxParameters) => {
-		if (!props.value) {
-			props.value = false;
+	const RevisionCard = (props) => {
+		let {data, index} = props;
+		const [value, setValue] = useState(false);
+		const [renderComponent, setRenderComponent] = useState(true);
+		
+		// This is used to stop the search bar from emptying on removal of card set
+		if (renderComponent) {  
+			if (data.length == undefined) {
+				return (
+					<View style={styles.Card}>
+						<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No card sets</Text>
+						<Text style={{padding: 5, color: 'white'}}>Please create some card sets</Text>
+					</View>	
+				);
+			} else {
+				return (
+					<View style={styles.Card}>
+			  			<View>
+							<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
+							{selectionBox ?  
+							(isMergable(data, index) ? 
+							<CheckBox value={value} 
+							onClick={() => {
+								let y = !value;
+								if (y) {
+									let x = mergeItems;
+									x.push(index);
+									setMergeItems(x); 
+								} else {
+									let x = mergeItems;
+									for (let i: number = 0; i < x.length; i++) {
+										if (x[i] == index) {
+											x.splice(i, 1);
+											break;
+										}
+									}
+									setMergeItems(x);
+								}
+								setValue(!value);
+							}} style={{marginLeft: 5}} /> : <Text style={{color: 'white', paddingLeft: 5}}>No cards in this set</Text>) : null}
+							<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
+						</View>
+						{!selectionBox ? <View>
+						<TouchableOpacity
+							style={styles.trash}
+							onPress={() => {
+								Alert.alert(
+									'Are you sure you want to delete this set?',
+									'Choose one of the following:',
+									[
+										{
+											text: 'Yes, delete',
+											onPress: () => {
+												AsyncStorage.getItem('revisionCards').then(data => {
+													data = JSON.parse(data);
+													data.splice(index, 1);
+													AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+												});
+												let cardSets = storageItems;
+												cardSets.splice(index, 1);
+												setStorageItems(cardSets);
+												setRenderComponent(false);
+											}
+										},
+										{
+											text: 'No, keep',
+											style: 'cancel'
+										}
+									]
+								)
+								
+							}}>
+								<Text style={{fontSize: 30}}>🗑</Text>
+							</TouchableOpacity>
+							<TouchableOpacity 
+							style={styles.playButton}
+							onPress={() => {
+								AsyncStorage.getItem('revisionCards').then(data => {
+									data = JSON.parse(data)
+									let firstCardSet = data[index];
+									data.splice(index, 1);
+									data.unshift(firstCardSet);
+									AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+									navigation.navigate('Play', {
+										i: 0,
+									});
+								});
+							}}>
+								<Text style={{fontSize: 40, color: 'white'}}>▶</Text>
+							</TouchableOpacity>
+							<TouchableOpacity 
+							style={styles.editButton}
+							onPress={() => {
+								AsyncStorage.getItem('revisionCards').then(data => {
+									data = JSON.parse(data)
+									let firstCardSet = data[index];
+									data.splice(index, 1);
+									data.unshift(firstCardSet);
+									AsyncStorage.setItem('revisionCards', JSON.stringify(data));
+									navigation.navigate('Other', {
+										i: 0,
+										n: data[0].card.length - 1
+									});
+								});
+							}}>
+								<Text style={{fontSize: 30}}>✏️</Text>
+							</TouchableOpacity>
+						</View> : null}
+					</View>
+				);
+			}
+		} else {
+			return false;
 		}
-		return (
-			<TouchableOpacity onPress={props.onClick}
-			style={[{width: 40, height: 40, borderWidth: 1, borderColor: 'white', justifyContent: 'center', alignItems: 'center'}, {backgroundColor: props.value ? props.checkedBackgroundColor || 'blue' : null}, props.style || null]}>
-				<Text style={{color: 'white', textAlign: 'center', fontSize: 25}}>{props.value ? '✓' : ''}</Text>
-			</TouchableOpacity>
-		);
 	}
-  	const RevisionCard = (props) => {
-	let data = props.data;
-	console.log('data in func ' + typeof(data));
-	let index = props.index;
-	const [value, setValue] = useState(false);
-	const [renderComponent, setRenderComponent] = useState(true);
-	
-	// This is used to stop the search bar from emptying on removal of card set
-	if (renderComponent) {  
-	if (data.length == undefined) {
-		return (
-			<View style={styles.Card}>
+	const AllCards = () => {
+	  	const [searchText, setSearchText] = useState("");
+	  	let data = storageItems;
+	  	console.log(noCards)
+	  	let x: object[] = [];
+	  	try {
+			let len: number = storageItems.length;
+			//console.log(len)
+			if (len == 0) {
+				return (
+					<ScrollView style={{flexGrow: 0.8}}>{RevisionCard([{
+						title: 'No card sets',
+						description: 'Please create some card sets'
+					}], 0)}</ScrollView>);
+			} else {
+				for (let i = 0; i < len; i++) {
+					if ((data[i].title.toLowerCase()).includes(searchText.toLowerCase())) {
+						x.push(<RevisionCard key={i} data={storageItems} index={i} />);
+					}
+	  			}
+	  			if (x.length == 0) {
+	  				x.push(<NoResult />)
+	  			}
+	  			if (selectionBox) {
+	  				return (
+	  					<View style={{flex: 1}}>
+	  						<TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
+	  							<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
+	  						</TouchableOpacity>
+	  						<View style={{margin: 5, paddingBottom: 40}}>
+	  							<SearchBar 
+	  								onTextChange={newText => {
+	  									setSearchText(newText.toLowerCase());
+	  								}}
+	  								value={searchText}
+	  							/>
+	  						</View>
+	  						<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
+	  					</View>
+	  				);
+	  			}
+	  			return (
+	  				<View style={{flex: 1}}>
+	  					<View style={{margin: 5, paddingBottom: 40}}>
+	  						<SearchBar 
+	  							onTextChange={newText => {
+	  								setSearchText(newText);
+	  							}}
+	  							value={searchText}
+	  						/>
+	  					</View>
+	  					<ScrollView style={{flexGrow: 0.8}}>
+	  						{x}
+	  					</ScrollView>
+	  				</View>
+	  			);
+			}
+		} catch(err) {
+	  		setNoCards(true)
+	  		return (
+	  			<View style={styles.Card}>
 					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No card sets</Text>
 					<Text style={{padding: 5, color: 'white'}}>Please create some card sets</Text>
-			</View>	
-		);
-	} else {
-		return (
-			<View style={styles.Card}>
-  				<View>
-					<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
-					{selectionBox ?  
-					(isMergable(data, index) ? <CheckBox value={value} onClick={() => {
-						let y = !value;
-						if (y) {
-							let x = mergeItems;
-							x.push(index);
-							setMergeItems(x); 
-						} else {
-							let x = mergeItems;
-							for (let i: number = 0; i < x.length; i++) {
-								if (x[i] == index) {
-									x.splice(i, 1);
-									break;
-								}
-							}
-							setMergeItems(x);
-						}
-						setValue(!value);
-						console.log(mergeItems);
-					}} style={{marginLeft: 5}} /> : <Text style={{color: 'white', paddingLeft: 5}}>No cards in this set</Text>) : null}
-					<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
-				</View>
-				{!selectionBox ? <View>
-				<TouchableOpacity
-					style={styles.trash}
-					onPress={() => {
-						Alert.alert(
-							'Are you sure you want to delete this set?',
-							'Choose one of the following:',
-							[
-								{
-									text: 'Yes, delete',
-									onPress: () => {
-										data.splice(index, 1);
-										AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-										AsyncStorage.getItem('revisionCards').then(list => {
-											list = JSON.parse(list)
-											//console.log(list.length)
-											if (list.length == 0) {
-												setNoCards(true);
-											}
-										})
-										setRenderComponent(false);
-										//updateStorageItems();
-									}
-								},
-								{
-									text: 'No, keep',
-									style: 'cancel'
-								}
-							]
-						)
-						
-					}}>
-						<Text style={{fontSize: 30}}>🗑</Text>
-					</TouchableOpacity>
-					<TouchableOpacity 
-					style={styles.playButton}
-					onPress={() => navigation.navigate('Play', {
-						i: index
-					})}>
-						<Text style={{fontSize: 40, color: 'white'}}>▶</Text>
-					</TouchableOpacity>
-					<TouchableOpacity 
-					style={styles.editButton}
-					onPress={() => {
-						navigation.navigate('Other', {
-							i: index,
-							n: data[index].card.length - 1
-						})
-					}}>
-						<Text style={{fontSize: 30}}>✏️</Text>
-					</TouchableOpacity>
-				</View> : null}
-			</View>
-		);
+				</View>	
+			);
+	  	}
 	}
-	} else {
-		return false;
-	}
-  }
-  const AllCards = () => {
-  	const [searchText, setSearchText] = useState("");
-  	let data = storageItems;
-  	console.log(noCards)
-  	let x: object[] = [];
-  	try {
-		let len: number = storageItems.length;
-		//console.log(len)
-		if (len == 0) {
-			return (
-				<ScrollView style={{flexGrow: 0.8}}>{RevisionCard([{
-					title: 'No card sets',
-					description: 'Please create some card sets'
-				}], 0)}</ScrollView>);
-		} else {
-			for (let i = 0; i < len; i++) {
-				if ((data[i].title.toLowerCase()).includes(searchText.toLowerCase())) {
-					x.push(<RevisionCard key={i} data={storageItems} index={i} />);
-				}
-  			}
-  			if (x.length == 0) {
-  				x.push(<NoResult />)
-  			}
-  			if (selectionBox) {
-  				return (
-  					<View style={{flex: 1}}>
-  						<TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
-  							<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
-  						</TouchableOpacity>
-  						<View style={{margin: 5, paddingBottom: 40}}>
-  							<SearchBar 
-  								onTextChange={newText => {
-  									setSearchText(newText.toLowerCase());
-  								}}
-  								value={searchText}
-  							/>
-  						</View>
-  						<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
-  					</View>
-  				);
-  			}
-  			return (
-  				<View style={{flex: 1}}>
-  					<View style={{margin: 5, paddingBottom: 40}}>
-  						<SearchBar 
-  							onTextChange={newText => {
-  								setSearchText(newText);
-  							}}
-  							value={searchText}
-  						/>
-  					</View>
-  					<ScrollView style={{flexGrow: 0.8}}>
-  						{x}
-  					</ScrollView>
-  				</View>
-  			);
-		}
-	} catch(err) {
-  		console.log(err.message);
-  		setNoCards(true)
-  		return (
-  			<View style={styles.Card}>
-				<Text style={{padding: 5, fontSize: 30, color: 'white'}}>No card sets</Text>
-				<Text style={{padding: 5, color: 'white'}}>Please create some card sets</Text>
-			</View>	
-		);
-  	}
-  }
 	const addLocalStorageItems = (): void => {
 		setNoCards(false);
 		setRender(false);
 		setReRender(true);
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
-			data.push({
+			data.unshift({
 				title: '',
 				description: ''
 			});
 			AsyncStorage.setItem('revisionCards', JSON.stringify(data))
 			navigation.navigate('Other', {
-				i: data.length - 1,
+				i: 0,
 				n: 0
 			})
 		});
@@ -300,7 +259,6 @@ export default function App({navigation}) {
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
 			mergeItems.sort();
-			//console.log(mergeItems);
 			let newCardSet = {
 				title: 'Merged card set',
 				description: 'This is a merged card set'
@@ -311,9 +269,9 @@ export default function App({navigation}) {
 					newCardSet.card.push(data[mergeItems[i]].card[j]);
 				}
 			}
-    		data.push(newCardSet);
+    		data.unshift(newCardSet);
 			AsyncStorage.setItem('revisionCards', JSON.stringify(data));
-			setStorageItems(data);
+			updateStorageItems();
 		})
 		setMergeItems([]);
 		setSelectionBox(false);
@@ -329,7 +287,7 @@ export default function App({navigation}) {
 	return (
 		<View style={styles.container}>
 			<AllCards />
-			<ResetStorage />
+			{/*<ResetStorage />*/}
 			{!selectionBox ? <TouchableNativeFeedback
 			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
 			onPress={() => setRender(!render)}>

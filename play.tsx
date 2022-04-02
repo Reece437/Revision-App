@@ -21,26 +21,24 @@ export default function Play({route, navigation}) {
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	const [cards, setCards] = useState([]);
 
-	const removeUnfinishedCards = (data): object[] => {
+	const removeUnfinishedCards = (data: object[]): object[] => {
 		let corrected: object[] = [];
 		try {
-		for (let i = 0; i < data.length;
-		i++) {
-			if ((data[i].question).replace(/&nbsp;/g, '').replace('<div></div>', '') == '' ||
-			(data[i].answer).replace(/&nbsp;/g, '').replace('<div></div>', '') == '') {
-				continue;
-			} else {
-				corrected.push(data[i]);
+			for (let i = 0; i < data.length; i++) {
+				if ((data[i].question).replace(/&nbsp;/g, '').replace('<div></div>', '') == '' ||
+				(data[i].answer).replace(/&nbsp;/g, '').replace('<div></div>', '') == '') {
+					continue;
+				} else {
+					corrected.push(data[i]);
+				}
 			}
-		}
 		} catch(err) {
 			corrected = [];
 		}
 		return corrected;
 	}
 	const shuffle = (array): any => {
-		array.sort(() => Math.random() - 0.5);
-		return array;
+		return array.sort(() => Math.random() - 0.5);
 	}
 	const Retry = (): void => {
 		setN(0);
@@ -50,6 +48,15 @@ export default function Play({route, navigation}) {
 		setFinished(false);
 		displayContent();
 	}
+	const bigReplace = (html: string) => {
+		if (!html.includes('div')) {
+			html = '<div>' + html + '</div>';
+		}
+		html = html.replace(/<img style='width: 110px; height: 110px;'/g, "<img style='width: 150px; height: 150px;'")
+		.replace(/<div/g, `<div style='font-size: 40px; color: white; padding: 5px'`)
+		return html
+	}
+	
 	const DisplayQuestionAndAnswer = props => {
 		const data = props.data;
 		if (data.length == 0) {
@@ -62,10 +69,9 @@ export default function Play({route, navigation}) {
 				</View>
 			);
 		}
-		let source = {
-			html: !showAnswer ? `<div style='color: white; font-size: 40px; padding: 5px;'>${(data[n].question).replace(/<img style='width: 110px; height: 110px;'/g, "<img style='width: 150px; height: 150px;'")}</div>` :
-			`<div style='color: white; font-size: 40px; padding: 5px;'>${(data[n].answer).replace(/<img style='width: 110px; height: 110px;'/g, "<img style='width: 150px; height: 150px;'")}</div>`
-		};
+		let source = {html: !showAnswer ? `${bigReplace(data[n].question)}` : 
+		`${bigReplace(data[n].answer)}`}
+		console.log('source ' + source.html)
 		return (
 			<View style={{flex: 1, backgroundColor: 'black'}}>
 			{!showAnswer ? <TouchableOpacity style={styles.box}
@@ -74,8 +80,8 @@ export default function Play({route, navigation}) {
 			}}>
 				<ScrollView style={{flexGrow: 1}}>
 				<RenderHTML
-					contentWidth={1000}
 					source={source}
+					contentWidth={400}
 				/>
 				</ScrollView>
 			</TouchableOpacity> : 
@@ -83,7 +89,7 @@ export default function Play({route, navigation}) {
 				<View style={styles.box}>
 					<ScrollView style={{flexGrow: 1}}>
 					<RenderHTML
-						contentWidth={1000}
+						contentWidth={400}
 						source={source}
 					/>
 					</ScrollView>
