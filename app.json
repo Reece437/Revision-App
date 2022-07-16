@@ -23,12 +23,12 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/download.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#000000"
       },
       "package": "com.reece437.test"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
   }
 }
