@@ -34,12 +34,24 @@ export const SearchBar = (props: SearchBarProps) => (
 	</View>
 );
 
+export const BottomBar = () => (
+	<View style={{flex: 1, 
+		backgroundColor: '#656565', width: '100%', 
+		height: 55, position: 'absolute',
+		bottom: 0, zIndex: 1
+	}}>
+	</View>
+);
+
+
 const styles = StyleSheet.create({
 	SearchBar: {
-		backgroundColor: '#9f9f9f',
-		borderRadius: 20,
+		backgroundColor: '#656565',
+		borderRadius: 5,
+		marginLeft: 7,
 		padding: 5,
 		height: 40,
-		fontSize: 18
+		fontSize: 18,
+		width: '95%'
 	}
 });

@@ -28,14 +28,14 @@ export const isMergable = (data, index: number): boolean => {
 
 // Stops title from appearing inside buttons
 export const titleLengthFix = (data) => {
-	for (let i = 0; i < data.length; i++) {
+	/*for (let i = 0; i < data.length; i++) {
 		for (let j = 12; j < data[i].title.length; j += 13) {
 			if (data[i].title.length > j + 1) {
 				data[i].title = data[i].title.slice(0, j) + '\n' + data[i].title.slice(j);
 				j += 2
 			}
 		}
-	} return data;
+	}*/ return data;
 }
 
 // Stops card sets from having the same title 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback} from 'react';
 import { Alert, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SearchBar, CheckBox } from './components/MainComponents';
+import { SearchBar, CheckBox, BottomBar } from './components/MainComponents';
 import {
 	isMergable,
 	removeUntitled,
@@ -14,9 +14,7 @@ export default function App({navigation}) {
 	const [mergeItems, setMergeItems] = useState([]);
 	const [noCards, setNoCards] = useState(false);
 	const [, updateState] = React.useState();
-	//const forceUpdate = React.useCallback(() => updateState({}), []);
 	const [storageItems, setStorageItems] = useState();
-	const [render, setRender] = useState(false);
 	const [reRender, setReRender] = useState(true);
 	
 	// For debugging purposes only 
@@ -70,7 +68,7 @@ export default function App({navigation}) {
 				return (
 					<View style={styles.Card}>
 			  			<View>
-							<Text style={{padding: 5, fontSize: 30, color: 'white'}}>{data[index].title}</Text>
+							<Text style={{padding: 5, fontSize: 24, color: 'white', width: '65%'}}>{data[index].title}</Text>
 							{selectionBox ?  
 							(isMergable(data, index) ? 
 							<CheckBox value={value} 
@@ -92,7 +90,7 @@ export default function App({navigation}) {
 								}
 								setValue(!value);
 							}} style={{marginLeft: 5}} /> : <Text style={{color: 'white', paddingLeft: 5}}>No cards in this set</Text>) : null}
-							<Text style={{padding: 5, color: 'white'}}>{data[index].description}</Text>
+							<Text style={{padding: 5, color: 'white', fontSize: 15}}>{data[index].description}</Text>
 						</View>
 						{!selectionBox ? <View>
 						<TouchableOpacity
@@ -177,7 +175,7 @@ export default function App({navigation}) {
 			//console.log(len)
 			if (len == 0) {
 				return (
-					<ScrollView style={{flexGrow: 0.8}}>{RevisionCard([{
+					<ScrollView style={{flexGrow: 0.9}}>{RevisionCard([{
 						title: 'No card sets',
 						description: 'Please create some card sets'
 					}], 0)}</ScrollView>);
@@ -204,7 +202,7 @@ export default function App({navigation}) {
 	  								value={searchText}
 	  							/>
 	  						</View>
-	  						<ScrollView style={{flexGrow: 0.8}}>{x}</ScrollView>
+	  						<ScrollView style={{flexGrow: 0.9}}>{x}</ScrollView>
 	  					</View>
 	  				);
 	  			}
@@ -218,7 +216,7 @@ export default function App({navigation}) {
 	  							value={searchText}
 	  						/>
 	  					</View>
-	  					<ScrollView style={{flexGrow: 0.8}}>
+	  					<ScrollView style={{flexGrow: 0.9}}>
 	  						{x}
 	  					</ScrollView>
 	  				</View>
@@ -236,7 +234,6 @@ export default function App({navigation}) {
 	}
 	const addLocalStorageItems = (): void => {
 		setNoCards(false);
-		setRender(false);
 		setReRender(true);
 		AsyncStorage.getItem('revisionCards').then(data => {
 			data = JSON.parse(data);
@@ -276,31 +273,22 @@ export default function App({navigation}) {
 		setMergeItems([]);
 		setSelectionBox(false);
 	}
-	useEffect(() => {
-		navigation.addListener('focus', () => {
-			if (reRender) {
-				updateStorageItems();
-				setReRender(false);
-			}
-		});
-	});
-	return (
-		<View style={styles.container}>
-			<AllCards />
-			{/*<ResetStorage />*/}
-			{!selectionBox ? <TouchableNativeFeedback
-			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
-			onPress={() => setRender(!render)}>
-			<View style={styles.addButton}>
-				<Text style={styles.addButtonText}>+</Text>
-			</View>
+	const AddButton = () => {
+		const [render, setRender] = useState(false);
+		return (
+			<>
+			{!selectionBox ? <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 45)}
+				onPress={() => setRender(!render)}>
+				<View style={styles.addButton}>
+					<Text style={[styles.addButtonText, {padding: 10}]}>+</Text>
+				</View>
 			</TouchableNativeFeedback> : null}
 			{render && !selectionBox ? <TouchableOpacity style={styles.addSecondary}
-			onPress={() => addLocalStorageItems()}>
+				onPress={() => addLocalStorageItems()}>
 				<Text style={{textAlign: 'center', fontWeight: 'bold'}}>NEW</Text>
 			</TouchableOpacity> : null}
 			{render && !selectionBox ? <TouchableOpacity style={styles.addTertiary}
-			onPress={() => {
+				onPress={() => {
 				if (storageItems.length <= 1) {
 					alert("You don't have enough card sets to use the merge feature");
 					setRender(false);
@@ -317,6 +305,23 @@ export default function App({navigation}) {
 				<Text style={[styles.addButtonText, {fontSize: 20, paddingTop: 30, fontWeight: 'bold'}]}>MERGE</Text>
 			</View>
 			</TouchableNativeFeedback> : null}
+			</>
+		);
+	}
+	useEffect(() => {
+		navigation.addListener('focus', () => {
+			if (reRender) {
+				updateStorageItems();
+				setReRender(false);
+			}
+		});
+	});
+	return (
+		<View style={styles.container}>
+			<AllCards />
+			{/*<ResetStorage />*/}
+			<AddButton />
+			<BottomBar />
 			<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />
 		</View>
 	);
@@ -329,56 +334,47 @@ const styles = StyleSheet.create({
     paddingTop: StatusBar.currentHeight
   },
   addButton: {
+  	padding: 0,
   	position: 'absolute',
   	alignItems: 'center',
-  	right: 10,
-  	bottom: 10,
-  	backgroundColor: '#64daf8',
-  	width: 100,
-  	height: 100,
+  	right: 15,
+  	bottom: 15,
+  	zIndex: 2,
+  	backgroundColor: '#0ed186',
+  	width: 90,
+  	height: 90,
   	borderRadius: 50,
   	overflow: 'hidden'
   },
   addButtonText: {
   	textAlign: 'center',
-  	fontSize: 60,
+  	fontSize: 40,
   },
   Card: {
-  	borderWidth: 2,
-  	borderColor: 'white',
-  	margin: 5,
-  	borderRadius: 10
+  	borderBottomWidth: 0.5,
+  	borderColor: '#a0a0a0cc',
+  	margin: 0,
+  	borderStyle: 'dashed'
   },
   trash: {
   	position: 'absolute',
   	left: 310,
-  	top: -80,
+  	top: -72,
   },
   playButton: {
   	position: 'absolute',
   	left: 230,
-  	top: -91,
+  	top: -85,
   },
   editButton: {
   	position: 'absolute',
-  	left: 275,
-  	top: -80
+  	left: 270,
+  	top: -72
   },
-  boxCard: {
-	color: 'white',
-	backgroundColor: '#3035f5',
-	width: 35,
-	height: 45,
-	marginLeft: 2.5,
-	marginRight: 2.5,
-	marginTop: 5,
-	borderRadius: 10,
-	justifyContent: 'center',
-	alignItems: 'center'
-	},
-	addButton1: {
+  addButton1: {
 		position: 'absolute',
 		bottom: '15%',
+		//zIndex: 0,
 		right: 35,
 	},
 	addButton2: {
@@ -389,9 +385,9 @@ const styles = StyleSheet.create({
 	addSecondary: {
 		zIndex: 1,
 		position: 'absolute',
-		bottom: '15%',
+		bottom: 110,
 		right: 35,
-		backgroundColor: '#64daf8',
+		backgroundColor: '#0ed186',
 		borderRadius: 50,
 		width: 50,
 		height: 50,
@@ -400,9 +396,9 @@ const styles = StyleSheet.create({
 	},
 	addTertiary: {
 		position: 'absolute',
-		bottom: '22%',
+		bottom: 165,
 		right: 35,
-		backgroundColor: '#64daf8',
+		backgroundColor: '#0ed186',
 		borderRadius: 50,
 		width: 50,
 		height: 50,

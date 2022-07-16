@@ -1,4 +1,5 @@
 import React, {useRef, useState, useCallback, useEffect} from "react";
+import { LinearGradient } from 'expo-linear-gradient';
 import {TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
@@ -25,7 +26,7 @@ export default function TempScreen({route, navigation}) {
 		            <RichEditor
 		              	key={'editor1'}
 		              	editorStyle={{backgroundColor: 'black', color: 'white', caretColor: 'red'}}
-		               	initialHeight={50}
+		               	initialHeight={80}
 		                initialContentHTML={props.question ? props.data[route.params.i].card[route.params.n].question :
 		                	props.data[route.params.i].card[route.params.n].answer
 		                }
@@ -33,12 +34,10 @@ export default function TempScreen({route, navigation}) {
 		                ref={ref}
 		                autoCapitalize={'on'}
 		                onChange={HTML => {
-		                   	console.log('data: ' + props.data[route.params.i].card[props.n].question)
 		                   	HTML = HTML.replace(/<img sr/g, `<img style='width: 110px; height: 110px;' sr`);
 		                    props.question ? props.data[route.params.i].card[props.n].question = HTML :
 		                    props.data[route.params.i].card[props.n].answer = HTML;
 		                    AsyncStorage.setItem('revisionCards', JSON.stringify(props.data));
-		                    //AsyncStorage.revisionCards[route.params.i].card[index].question = questionHTML;
 		                }}
 		                onFocus={props.onFocus}
 		                androidHardwareAccelerationDisabled={false} 
@@ -52,7 +51,7 @@ export default function TempScreen({route, navigation}) {
 		            <RichEditor
 		              	key={'editor1'}
 		              	editorStyle={{backgroundColor: 'black', color: 'white', caretColor: 'red'}}
-		               	initialHeight={50}
+		               	initialHeight={80}
 		                initialContentHTML={'<div></div>'}
 		                placeholder={props.placeholder}
 		                ref={ref}
@@ -117,13 +116,18 @@ export default function TempScreen({route, navigation}) {
 		let x: any = [];
 		for (let i = 0; i < len; i++) {
 			x.push(
-			<TouchableOpacity style={styles.boxCard} key={i}
-			onPress={() => props.onPress(i)}>
-				<Text style={{color: 'white', textAlign: 'center'}}>{i + 1}</Text>
-			</TouchableOpacity>);
+				<TouchableOpacity style={styles.boxCard} key={i}
+					onPress={() => props.onPress(i)}>
+					<LinearGradient colors={['purple', 'blue']}
+						style={styles.boxCard}
+						start={{x: 0.7, y: 0.1}}>
+						<Text style={{color: 'white', textAlign: 'center'}}>{i + 1}</Text>
+					</LinearGradient>
+				</TouchableOpacity>
+			);
 		}
 		return (
-			<ScrollView horizontal={true} style={{flexGrow: 0.001}}>{x}</ScrollView>
+			<ScrollView horizontal={true} style={{flexGrow: 0}}>{x}</ScrollView>
 		);
 	}
 	const CreateCardInterface: React.FC = () => {
@@ -167,7 +171,7 @@ export default function TempScreen({route, navigation}) {
 		}
 		try {
 			return (
-				<View style={{marginTop: StatusBar.currentHeight, marginLeft: 5, marginRight: 5, flex: 1}}>
+				<View style={{marginTop: StatusBar.currentHeight, flex: 1}}>
 			        <Text style={{textAlign: 'center', fontSize: 30, color: 'white'}}>Card No. {n + 1} {'\n'}
 					<Text style={{fontSize: 12, color: 'white'}}>Total number of cards: {data[route.params.i].card.length}</Text></Text>
 			        <TouchableOpacity style={{
@@ -189,9 +193,8 @@ export default function TempScreen({route, navigation}) {
 						<Text style={{textAlign: 'center', fontSize: 25}}>🗑</Text>
 					</TouchableOpacity>
 					<BoxCards data={data} onPress={setN} />
-			        <ScrollView contentConatinerStyle={{marginBottom: 5}}>
 			        <TextInput 
-			        	placeholder={'Title...'}
+			        	placeholder={'Title for Card Set'}
 			        	placeholderTextColor={'#e3ecef74'}
 			        	onChangeText={newText => {
 			        		setTitle(newText);
@@ -203,7 +206,7 @@ export default function TempScreen({route, navigation}) {
 			        	style={styles.title}
 			        />
 			        <TextInput 
-			        	placeholder={'Description...'}
+			        	placeholder={'Description for Card Set'}
 			        	placeholderTextColor={'#e3ecef74'}
 			        	onChangeText={newText => {
 			        		setDescription(newText)
@@ -214,10 +217,12 @@ export default function TempScreen({route, navigation}) {
 			        	value={description}
 			        	style={styles.description}
 			        />
+			        <ScrollView contentConatinerStyle={{marginBottom: 0}}
+			        style={{flexGrow: 1}} stickyHeaderIndices={[0]}>
 			        {toolbar ? <Toolbar ref={richText1} /> : null}
 			        {!toolbar ? <Toolbar ref={richText2} /> : null}
-			        <Editor ref={richText1} n={n} placeholder={'Enter question here...'} question={true} data={data} onFocus={() => setToolbar(true)} />
-			        <Editor ref={richText2} n={n} placeholder={'Enter answer here...'} style={{borderTopWidth: 0}} question={false} data={data} onFocus={() => setToolbar(false)} />
+			        <Editor ref={richText1} n={n} placeholder={`Question for Card ${n + 1}`} question={true} data={data} onFocus={() => setToolbar(true)} />
+			        <Editor ref={richText2} n={n} placeholder={`Answer for Card ${n + 1}`} style={{borderTopWidth: 0}} question={false} data={data} onFocus={() => setToolbar(false)} />
 			        </ScrollView>
 			        <StatusBar barStyle="light-content" backgroundColor={'transparent'} translucent/>
 	        	</View>
@@ -236,38 +241,33 @@ export default function TempScreen({route, navigation}) {
 };
 const styles = StyleSheet.create({
 	title: {
-		borderWidth: 1,
-		borderColor: 'white',
-		fontSize: 30,
+		width: '100%',
+		fontSize: 40,
 		padding: 5,
+		height: 80,
 		color: 'white',
+		//backgroundColor: '#ffffff00'
 	},
 	description: {
-		borderWidth: 1,
-		borderColor: 'white',
-		fontSize: 15,
+		width: '100%',
+		fontSize: 18,
 		padding: 5,
-		color: 'white'
+		color: 'white',
 	},
 	editor: {
 		borderWidth: 1,
 		borderColor: 'white',
-		fontSize: 24,
 		padding: 5,
-		minHeight: 30,
-		color: 'white',
 	},
 	boxCard: {
-		color: 'white',
-		backgroundColor: '#3035f5',
 		width: 35,
 		height: 45,
 		marginLeft: 2.5,
 		marginRight: 2.5,
 		marginTop: 5,
-		marginBottom: 10,
+		marginBottom: 3,
 		borderRadius: 10,
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 });
