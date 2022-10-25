@@ -1,21 +1,21 @@
 # Expo 
- .expo 
- __generated__ 
- web-build 
- bare-apps 
+.expo 
+__generated__ 
+web-build 
+bare-apps 
   
  # macOS 
- .DS_Store 
+.DS_Store 
   
  # Node 
 node_modules 
 npm-debug.log 
   
  # Ruby 
- .direnv 
+.direnv 
   
  # Env 
- .envrc.local 
+.envrc.local 
   
  # Emacs 
  *~ 
