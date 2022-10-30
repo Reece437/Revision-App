@@ -5,7 +5,7 @@ export default {
     jsEngine: "hermes",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/download.jpg",
+    icon: "./assets/640px-Book-icon-bible.png",
     splash: {
       image: "./assets/splash.png",
       resizeMode: "contain",
@@ -22,7 +22,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/download.jpg",
+        foregroundImage: "./assets/640px-Book-icon-bible.png",
         backgroundColor: "#000000"
       },
       package: "com.reece437.test"
@@ -30,5 +30,10 @@ export default {
     web: {
       favicon: "./assets/favicon.png"
     },
+    extra: {
+    	eas: {
+    		projectId: "27748628-ff7e-4da7-b716-6b85587951a9" 
+    	}
+    }
   }
 }

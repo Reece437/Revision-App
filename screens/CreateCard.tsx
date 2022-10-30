@@ -1,6 +1,6 @@
 import React, {useRef, useState, useCallback, useEffect} from "react";
 import { LinearGradient } from 'expo-linear-gradient';
-import {TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
+import {AppState, TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
 import { auth, db } from '../firebase';
@@ -20,8 +20,7 @@ export default function TempScreen({route, navigation}) {
 	const Editor: React.FC = React.forwardRef((props: editorProps, ref) => {
 		try {
 			return (
-				<KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-		        style={styles.editor}>
+				<View style={styles.editor}>
 		            <RichEditor
 		              	key={'editor1'}
 		              	editorStyle={{backgroundColor: 'black', color: 'white', caretColor: 'red'}}
@@ -37,17 +36,18 @@ export default function TempScreen({route, navigation}) {
 		                    props.question ? props.data[route.params.i].card[props.n].question = HTML :
 		                    props.data[route.params.i].card[props.n].answer = HTML;
 		                    props.fun(props.data);
+		                   	AsyncStorage.setItem('cards', JSON.stringify(props.data))
+		                    AsyncStorage.setItem('shouldSave', JSON.stringify(true))
 		                    //db.collection('users').doc(auth.currentUser?.uid).set({data: props.data});
 		                }}
 		                onFocus={props.onFocus}
 		                androidHardwareAccelerationDisabled={false} 
 		            />
-		        </KeyboardAvoidingView>
+		        </View>
 			);
 		} catch(err) {
 			return (
-				<KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-		        style={styles.editor}>
+				<View style={styles.editor}>
 		            <RichEditor
 		              	key={'editor1'}
 		              	editorStyle={{backgroundColor: 'black', color: 'white', caretColor: 'red'}}
@@ -63,12 +63,12 @@ export default function TempScreen({route, navigation}) {
 		                    props.question ? props.data[route.params.i].card[props.n].question = HTML :
 		                    props.data[route.params.i].card[props.n].answer = HTML;
 		                    props.fun(props.data);
-		                    //db.collection('users').doc(auth.currentUser?.uid).set({data: props.data});
-		                    //AsyncStorage.revisionCards[route.params.i].card[index].question = questionHTML;
-		                }}
+		                    AsyncStorage.setItem('cards', JSON.stringify(props.data))
+		                    AsyncStorage.setItem('shouldSave', JSON.stringify(true));
+		                 }}
 		                androidHardwareAccelerationDisabled={false} 
 		            />
-		        </KeyboardAvoidingView>
+		        </View>
 			);
 		}
 	});
@@ -121,7 +121,6 @@ export default function TempScreen({route, navigation}) {
 				<TouchableOpacity style={styles.boxCard} key={i}
 					onPress={() => {
 						props.onPress(i)
-						props.otherFunction()
 					}}>
 					<LinearGradient colors={['purple', 'blue']}
 						style={styles.boxCard}
@@ -147,15 +146,72 @@ export default function TempScreen({route, navigation}) {
 		const [n, setN] = useState(route.params.n);
 		const [count, setCount] = useState(0)
 		const data = storageItems;
-	
-		const save = () => {
-			db.collection('users').doc(auth.currentUser?.uid).set({data: storageItems});
+		
+		useEffect(() => {
+			const unsubscribe = AppState.addEventListener('change', async(newState) => {
+				let shouldSave = await AsyncStorage.getItem('shouldSave');
+				shouldSave = JSON.parse(shouldSave)
+				if (shouldSave === true && newState == 'background') {
+					console.log('background saved')
+					save()
+				}
+			}) 
+			return () => unsubscribe.remove()
+		}, [])
+		
+		/*
+		* This is necessary to reduce read and writes to firebase server
+		*/
+		////////////////
+		const save = (doc) => {
+			AsyncStorage.setItem('cards', JSON.stringify(doc));
+			AsyncStorage.setItem('shouldSave', JSON.stringify(true));
 		}
 		
 		useEffect(() => {
-			updateStorageItems()
-		}, [n])
+			const unsubscribe = navigation.addListener('beforeRemove', async() => {
+				let data = await AsyncStorage.getItem('cards');
+				data = JSON.parse(data)
+				let shouldSave = await AsyncStorage.getItem('shouldSave');
+				shouldSave = JSON.parse(shouldSave);
+				if (shouldSave === true && data !== undefined) {
+					db.collection('users').doc(auth.currentUser?.uid).set({data});
+					AsyncStorage.setItem('shouldSave', JSON.stringify(false))
+				}
+			});
+			return unsubscribe;
+		}, [])
 		
+		const updateAll = () => {
+			if (storageItems !== undefined) {
+				const info = storageItems;
+				richText1.current?.setContentHTML(info[route.params.i].card[n].question);
+				setQuestion(info[route.params.i].card[n].question);
+				richText2.current?.setContentHTML(info[route.params.i].card[n].answer);
+				setAnswer(info[route.params.i].card[n].answer);
+			}
+		}
+		
+		const createNew = () => {
+			const info = storageItems;
+			info[route.params.i].card.push({
+				question: '',
+				answer: ''
+			});
+			setStorageItems(info)
+			save(info)
+			setN(info[route.params.i].card.length - 1);
+		}
+		
+		useEffect(() => {
+			updateAll()
+		}, [n, count])
+		
+		useEffect(() => {
+			updateStorageItems();
+		}, [])
+		
+		/////////////////
 		const updateStorageItems = (): void => {
 			db.collection('users').doc(auth.currentUser?.uid).get().then(doc => {
 				let info = doc.data().data
@@ -192,34 +248,39 @@ export default function TempScreen({route, navigation}) {
 						top: 5,
 						right: 5,
 					}} onPress={() => {
-						setN(data[route.params.i].card.length);
+						createNew()
 					}}>
 						<Text style={{fontSize: 20, color: '#56ddfe'}}>New</Text>
 					</TouchableOpacity>
 					<TouchableOpacity onPress={() => {
 						data[route.params.i].card.splice(n, 1);
-						db.collection('users').doc(auth.currentUser?.uid).set({data});
 						if (n != 0) {
-							setN(n - 1)
+							save(data);
+							setStorageItems(data)
+							setN(n - 1);
 						} else {
-							data[route.params.i].card = [{
-								question: '',
-								answer: ''
-							}];
-							db.collection('users').doc(auth.currentUser?.uid).set({data});
-							updateStorageItems()
+							if (data[route.params.i].card.length == 0) {
+								data[route.params.i].card = [{
+									question: '',
+									answer: ''
+								}];
+							}
+							save(data)
+							setStorageItems(data);
+							setCount(count + 1)
 						}
 					}} style={{width: 35, marginLeft: 310}}>
 						<Text style={{textAlign: 'center', fontSize: 25}}>🗑</Text>
 					</TouchableOpacity>
-					<BoxCards data={data} onPress={setN} otherFunction={save} />
+					<BoxCards data={data} onPress={setN} />
 			        <TextInput 
 			        	placeholder={'Title for Card Set'}
 			        	placeholderTextColor={'#e3ecef74'}
 			        	onChangeText={newText => {
 			        		setTitle(newText);
 			        		data[route.params.i].title = newText;
-			        		db.collection('users').doc(auth.currentUser?.uid).set({data});
+			        		save(data);
+			        		setStorageItems(data);
 			        		//AsyncStorage.revisionCards[route.params.i].title = newText;
 			        	}}
 			        	value={title}
@@ -231,19 +292,20 @@ export default function TempScreen({route, navigation}) {
 			        	onChangeText={newText => {
 			        		setDescription(newText)
 			        		data[route.params.i].description = newText
-			        		db.collection('users').doc(auth.currentUser?.uid).set({data});
+			        		save(data);
+			        		setStorageItems(data);
 			        		//AsyncStorage.revisionCards[route.params.i].description = newText;
 			        	}}
 			        	value={description}
 			        	style={styles.description}
 			        />
-			        <ScrollView contentConatinerStyle={{marginBottom: 0}}
-			        style={{flexGrow: 1}} stickyHeaderIndices={[0]}>
-			        {toolbar ? <Toolbar ref={richText1} /> : null}
-			        {!toolbar ? <Toolbar ref={richText2} /> : null}
-			        <Editor ref={richText1} fun={setStorageItems} n={n} placeholder={`Question for Card ${n + 1}`} question={true} data={data} onFocus={() => setToolbar(true)} />
-			        <Editor ref={richText2} fun={setStorageItems} n={n} placeholder={`Answer for Card ${n + 1}`} style={{borderTopWidth: 0}} question={false} data={data} onFocus={() => setToolbar(false)} />
-			        </ScrollView>
+			        <ScrollView stickyHeaderIndices={[0]}>
+				       	{toolbar ? <Toolbar ref={richText1} /> : <Toolbar ref={richText2} />}
+				       	<KeyboardAvoidingView style={{flex: 1}} behavior="position" keyboardVerticalOffset={-50}>
+					       	<Editor ref={richText1} fun={setStorageItems} n={n} placeholder={`Question for Card ${n + 1}`} question={true} data={data} onFocus={() => setToolbar(true)} />
+					       	<Editor ref={richText2} fun={setStorageItems} n={n} placeholder={`Answer for Card ${n + 1}`} style={{borderTopWidth: 0}} question={false} data={data} onFocus={() => setToolbar(false)} />
+					    </KeyboardAvoidingView>
+				    </ScrollView>
 			        <StatusBar barStyle="light-content" backgroundColor={'transparent'} translucent/>
 	        	</View>
 			)

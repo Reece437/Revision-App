@@ -9,7 +9,7 @@ interface CheckBoxParameters {
 }
 export const CheckBox: React.FC = (props: CheckBoxParameters) => (
 	<TouchableOpacity onPress={props.onClick}
-	style={[{width: 40, height: 40, borderWidth: 1, borderColor: 'white', justifyContent: 'center', alignItems: 'center'}, {backgroundColor: props.value ? props.checkedBackgroundColor || 'blue' : null}, props.style || null]}>
+	style={[{width: 40, height: 40, borderWidth: 1, borderColor: 'white', position: 'absolute', top: 5, right: 15}, {backgroundColor: props.value ? props.checkedBackgroundColor || 'blue' : null}, props.style || null]}>
 		<Text style={{color: 'white', textAlign: 'center', fontSize: 25}}>{props.value ? '✓' : ''}</Text>
 	</TouchableOpacity>
 );

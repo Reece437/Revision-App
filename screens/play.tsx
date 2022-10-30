@@ -1,28 +1,27 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {
 	StatusBar,
 	View,
 	Text,
 	StyleSheet,
 	TouchableOpacity,
-	ScrollView
+	ScrollView,
+	TouchableWithoutFeedback,
+	Animated,
+	FlatList,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth, db } from '../firebase';
 
-
 export default function Play({route, navigation}) {
-	const [finished, setFinished] = useState(false)
-	const [correct, setCorrect] = useState(0);
-	const [incorrect, setIncorrect] = useState(0);
-	const [showAnswer, setShowAnswer] = useState(false);
-	const [n, setN] = useState(0)
 	const [all, setAll] = useState();
 	const [, updateState] = useState();
 	const forceUpdate = React.useCallback(() => updateState({}), []);
 	const [cards, setCards] = useState([]);
-
+	
+	const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+	
 	const removeUnfinishedCards = (data: object[]): object[] => {
 		let corrected: object[] = [];
 		try {
@@ -44,9 +43,6 @@ export default function Play({route, navigation}) {
 	}
 	const Retry = (): void => {
 		setN(0);
-		setShowAnswer(false);
-		setCorrect(0);
-		setIncorrect(0);
 		setFinished(false);
 		displayContent();
 	}
@@ -59,9 +55,74 @@ export default function Play({route, navigation}) {
 		return html
 	}
 	
-	const DisplayQuestionAndAnswer = props => {
+	const DisplayContent = props => {
+		const questionValue = useRef(new Animated.Value(1)).current;
+		const answerScale = useRef(new Animated.Value(0)).current;
+		
+		const [showAnswer, setShowAnswer] = useState(false);
+		const [correct, setCorrect] = useState(0);
+		const [incorrect, setIncorrect] = useState(0);
+		const [n, setN] = useState(0)
+		const [dontShow, setDontShow] = useState(true)
+		const [finished, setFinished] = useState(false);
 		const data = props.data;
-		if (data.length == 0) {
+		
+		const Retry = (): void => {
+			setN(0);
+			setFinished(false);
+			setIncorrect(0)
+			setCorrect(0)
+			setShowAnswer(false);
+			setDontShow(true)
+			displayContent();
+		}
+		
+		const FinishedScreen = () => {
+			return (
+				<View style={{flex: 1, backgroundColor: 'black'}}>
+				<View style={[styles.box, {justifyContent: 'center', alignItems: 'center'}]}>
+					<Text style={{fontSize: 32, color: '#0bb002'}}>You got {correct} correct.</Text>
+					<Text style={{fontSize: 32, color: '#dc0000'}}>You got {incorrect} incorrect.</Text>
+					<TouchableOpacity style={styles.retry}
+					onPress={() => Retry()}>
+						<Text style={{fontSize: 25, color: 'black', padding: 20}}>Retry</Text>
+					</TouchableOpacity>
+				</View>
+				</View>
+			);
+		}
+	
+		useEffect(() => {
+			if (showAnswer) {
+				Animated.timing(questionValue, {
+					toValue: 0,
+					duration: 500,
+					useNativeDriver: true
+				}).start(({finished}) => {
+					setDontShow(false)
+					Animated.timing(answerScale, {
+						toValue: 1,
+						duration: 500,
+						useNativeDriver: true
+					}).start()
+				})
+			} else {
+				Animated.timing(answerScale, {
+					toValue: 0,
+					duration: 500,
+					useNativeDriver: true
+				}).start(({finished}) => {
+					setDontShow(true)
+					Animated.timing(questionValue, {
+						toValue: 1,
+						duration: 500,
+						useNativeDriver: true
+					}).start()
+				})
+			}
+		}, [showAnswer])
+		
+		if (cards.length == 0) {
 			return (
 				<View style={{flex: 1, backgroundColor: 'black'}}>
 				<View style={[styles.box, {justifyContent: 'center', alignItems: 'center'}]}>
@@ -71,31 +132,34 @@ export default function Play({route, navigation}) {
 				</View>
 			);
 		}
-		let source = {html: !showAnswer ? `${bigReplace(data[n].question)}` : 
-		`${bigReplace(data[n].answer)}`}
-		console.log('source ' + source.html)
+		let sourceQuestion = `<div style="flex: 1">${bigReplace(data[n].question)}</div>`
+		let sourceAnswer = showAnswer ? `<div style="flex: 1">${bigReplace(data[n].answer)}</div>` : ''
+		if (!finished) {
 		return (
 			<View style={{flex: 1, backgroundColor: 'black'}}>
-			{!showAnswer ? <TouchableOpacity style={styles.box}
+			<AnimatedTouchableOpacity style={[styles.box, {transform: [{scaleX: questionValue}]}]}
 			onPress={() => {
 				setShowAnswer(true)
 			}}>
 				<ScrollView style={{flexGrow: 1}}>
 				<RenderHTML
-					source={source}
+					source={{html: sourceQuestion}}
 					contentWidth={400}
+					enableExperimentalMarginCollapsing={true}
 				/>
 				</ScrollView>
-			</TouchableOpacity> : 
-			<View style={{flex: 1}}>
-				<View style={styles.box}>
+			</AnimatedTouchableOpacity> 
+			<View style={{flex :1}}>
+				{showAnswer || !dontShow ? <Animated.View style={[styles.box, {transform: [{scaleX: answerScale}]}]}>
 					<ScrollView style={{flexGrow: 1}}>
 					<RenderHTML
+						source={{html: sourceAnswer}}
 						contentWidth={400}
-						source={source}
+						enableExperimentalMarginCollapsing={true}
 					/>
 					</ScrollView>
-				</View>
+				</Animated.View> : null}
+				{showAnswer && !dontShow ? <View style={{flex : 1}}>
 				<Text style={styles.check}>Did you get it correct?</Text>
 				<TouchableOpacity style={styles.incorrect}
 				onPress={() => {
@@ -121,39 +185,34 @@ export default function Play({route, navigation}) {
 				}}>
 					<Text style={{fontSize: 25}}>👍</Text>
 				</TouchableOpacity>
-			</View>}
+				</View> : null}
+				</View>
 			</View>
 		);
+		} else {
+			return <FinishedScreen />
+		}
 	}
-	const FinishedScreen = () => {
-		return (
-			<View style={{flex: 1, backgroundColor: 'black'}}>
-			<View style={[styles.box, {justifyContent: 'center', alignItems: 'center'}]}>
-				<Text style={{fontSize: 32, color: '#0bb002'}}>You got {correct} correct.</Text>
-				<Text style={{fontSize: 32, color: '#dc0000'}}>You got {incorrect} incorrect.</Text>
-				<TouchableOpacity style={styles.retry}
-				onPress={() => Retry()}>
-					<Text style={{fontSize: 25, color: 'black', padding: 20}}>Retry</Text>
-				</TouchableOpacity>
-			</View>
-			</View>
-		);
-	}
+	
+	
 	const displayContent = (): void => {
 		db.collection('users').doc(auth.currentUser?.uid).get().then(doc => {
 			data = doc.data().data;
 			setCards(shuffle(removeUnfinishedCards(data[route.params.i].card)));
 		})
 	};
+	
 	useEffect(() => {
 		displayContent();
 	}, [])
+	
 	useEffect(() => {
 		forceUpdate();
 	}, [cards])
+	
 	return (
 		<>
-			{!finished ?  <DisplayQuestionAndAnswer data={cards} /> : <FinishedScreen />}
+			<DisplayContent data={cards} />
 			<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />
 		</>
 	);
