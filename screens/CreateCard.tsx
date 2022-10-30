@@ -153,7 +153,11 @@ export default function TempScreen({route, navigation}) {
 				shouldSave = JSON.parse(shouldSave)
 				if (shouldSave === true && newState == 'background') {
 					console.log('background saved')
-					save()
+					await save();
+					let info = await AsyncStorage.getItem('cards')
+					info = JSON.parse(info);
+					await db.collection('users').doc(auth.currentUser?.uid).set({data: info});
+					AsyncStorage.setItem('shouldSave', JSON.stringify(false))
 				}
 			}) 
 			return () => unsubscribe.remove()
