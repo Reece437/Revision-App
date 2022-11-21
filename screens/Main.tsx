@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, Animated, FlatList } from 'react-native';
+import { Alert, Dimensions, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, Animated, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SearchBar, CheckBox, BottomBar } from '../components/MainComponents';
 import {
@@ -10,6 +10,8 @@ import {
 } from '../functions/MainFunctions';
 import { auth, db } from '../firebase';
 import { useFocusEffect } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
+
 
 
 export default function App({navigation}) {
@@ -20,6 +22,7 @@ export default function App({navigation}) {
 	
 	const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 	const AnimatedTouchableNativeFeedback = Animated.createAnimatedComponent(TouchableNativeFeedback);
+	
 	
 	// For debugging purposes only 
 	const ResetStorage: React.FC = () => (
@@ -48,7 +51,6 @@ export default function App({navigation}) {
 	}
 	
 	const RevisionCard = (props) => {
-		console.log('functiom called')
 		let {data, index} = props;
 		const [value, setValue] = useState(false);
 		const [renderComponent, setRenderComponent] = useState(true);
@@ -66,11 +68,13 @@ export default function App({navigation}) {
 				);
 			} else {
 				return (
-					<View style={styles.Card}>
+					<>
 			  			<View>
-							<Text style={{padding: 5, fontSize: 24, color: 'white', width: '65%'}}>{data[index].title}</Text>
 							{selectionBox ?  
 							(isMergable(data, index) ? 
+							<View style={styles.Card}>
+							<Text style={{padding: 5, fontSize: 24, color: 'white', width: '65%'}}>{data[index].title}</Text>
+							<Text style={{padding: 5, color: 'white', fontSize: 15}}>{data[index].description}</Text>
 							<CheckBox value={value} 
 							onClick={() => {
 								let y = !value;
@@ -89,10 +93,15 @@ export default function App({navigation}) {
 									setMergeItems(x);
 								}
 								setValue(!value);
-							}} style={{marginLeft: 5}} /> : <Text style={{color: 'white', paddingLeft: 5}}>No cards in this set</Text>) : null}
-							<Text style={{padding: 5, color: 'white', fontSize: 15}}>{data[index].description}</Text>
+							}} style={{marginLeft: 5}} />
+							</View>: <View style={styles.Card}> 
+							<Text style={{padding: 5, fontSize: 24, color: 'white', width: '65%'}}>{data[index].title}</Text>
+							<Text style={{padding: 5, fontSize: 15, color: 'white'}}>No cards in this set</Text>
+							</View>) : null}
 						</View>
-						{!selectionBox ? <View style={{flex: 1}}>
+						{!selectionBox ? <View style={styles.Card}>
+						<Text style={{padding: 5, fontSize: 24, color: 'white', width: '65%'}}>{data[index].title}</Text>
+						<Text style={{padding: 5, color: 'white', fontSize: 15}}>{data[index].description}</Text>
 						<TouchableOpacity
 							style={styles.trash}
 							onPress={() => {
@@ -153,7 +162,7 @@ export default function App({navigation}) {
 								<Text style={{fontSize: 30}}>✏️</Text>
 							</TouchableOpacity>
 						</View> : null}
-					</View>
+					</>
 				);
 			}
 		} else {
@@ -210,6 +219,7 @@ export default function App({navigation}) {
 	  							}
 	  						}}
 	  						keyExtractor={(item) => storageItems.indexOf(item)}
+	  						style={{marginBottom: 55}}
 	  					/> : <NoResult />}
 	  				</View>
   				);
@@ -341,15 +351,15 @@ export default function App({navigation}) {
 		
 		return (
 			<>
-			{!selectionBox ? <AnimatedTouchableNativeFeedback background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 45)}
+			{!selectionBox ? <AnimatedTouchableNativeFeedback background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 35)}
 				onPress={() => setRender(!render)}>
 				<View style={styles.addButton}>
-					<Text style={[styles.addButtonText, {padding: 10}]}>+</Text>
+					<Text style={[styles.addButtonText]}>+</Text>
 				</View>
 			</AnimatedTouchableNativeFeedback> : null}
 			{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addSecondary, {transform: [{scale: scaleValue}]}]}
 				onPress={() => addLocalStorageItems()}>
-				<Text style={{textAlign: 'center', fontWeight: 'bold'}}>NEW</Text>
+				<Icon name="create-outline" size={24} />
 			</AnimatedTouchableOpacity> : null}
 			{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addTertiary, {transform: [{scale: scaleValue}]}]}
 				onPress={() => {
@@ -360,13 +370,13 @@ export default function App({navigation}) {
 					setSelectionBox(true); setRender(false)
 				}
 			}}>
-				<Text style={{textAlign: 'center', fontWeight: 'bold'}}>MERGE</Text>
+				<Icon name="git-network-outline" size={24} />
 			</AnimatedTouchableOpacity> : null}
 			{selectionBox ? <TouchableNativeFeedback
 			background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
 			onPress={() => mergeCardSets()}>
 			<View style={styles.addButton}>
-				<Text style={[styles.addButtonText, {fontSize: 20, paddingTop: 30, fontWeight: 'bold'}]}>MERGE</Text>
+				<Icon name="git-network-outline" size={40} />
 			</View>
 			</TouchableNativeFeedback> : null}
 			</>
@@ -398,21 +408,22 @@ const styles = StyleSheet.create({
     paddingTop: StatusBar.currentHeight
   },
   addButton: {
-  	padding: 0,
+  	flex: 1,
   	position: 'absolute',
   	alignItems: 'center',
-  	right: 15,
+  	left: (Dimensions.get('window').width / 2) - 30,
   	bottom: 15,
   	zIndex: 2,
   	backgroundColor: '#0ed186',
-  	width: 90,
-  	height: 90,
+  	width: 70,
+  	height: 70,
   	borderRadius: 50,
-  	overflow: 'hidden'
+  	overflow: 'hidden',
+  	justifyContent: 'center'
   },
   addButtonText: {
-  	textAlign: 'center',
   	fontSize: 40,
+  	paddingBottom: 5
   },
   Card: {
   	flex: 1,
@@ -424,49 +435,39 @@ const styles = StyleSheet.create({
   trash: {
   	position: 'absolute',
   	left: 310,
-  	top: -72,
+  	top: 7,
   },
   playButton: {
   	position: 'absolute',
   	left: 230,
-  	top: -85,
+  	top: -5,
   },
   editButton: {
   	position: 'absolute',
   	left: 270,
-  	top: -72
+  	top: 7
   },
-  addButton1: {
-		position: 'absolute',
-		bottom: '15%',
-		//zIndex: 0,
-		right: 35,
-	},
-	addButton2: {
-		position: 'absolute',
-		bottom: '25%',
-		right: 35
-	},
 	addSecondary: {
-		zIndex: 1,
+		zIndex: 2,
 		position: 'absolute',
-		bottom: 110,
-		right: 35,
+		bottom: 10,
+		left: (Dimensions.get('window').width / 2) - 80,
 		backgroundColor: '#0ed186',
 		borderRadius: 50,
-		width: 50,
-		height: 50,
+		width: 40,
+		height: 40,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
 	addTertiary: {
+		zIndex: 2,
 		position: 'absolute',
-		bottom: 165,
-		right: 35,
+		bottom: 10,
+		right: (Dimensions.get('window').width / 2) - 92,
 		backgroundColor: '#0ed186',
 		borderRadius: 50,
-		width: 50,
-		height: 50,
+		width: 40,
+		height: 40,
 		alignItems: 'center',
 		justifyContent: 'center'
 	},
