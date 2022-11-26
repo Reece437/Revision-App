@@ -180,13 +180,33 @@ export default function App({navigation}) {
 	
 	const AllCards = () => {
 	  	const [searchText, setSearchText] = useState("");
+	  	const [loadText, setLoadText] = useState("Loading.")
 	  	let data = storageItems;
 	  	let x: object[] = [];
 		let len;
 		try {
 			len = storageItems.length;
 		} catch(err) {
-			return null;
+			setInterval(() => {
+				if (loadText == "Loading...") {
+					setLoadText("Loading.")
+				} else {
+					setLoadText(loadText + '.');
+				}
+			}, 500)
+			return (
+				<View style={{flex: 1, margin: 5}}>
+					<SearchBar 
+	  					onTextChange={newText => {
+	  						setSearchText(newText);
+	  					}}
+	  					value={searchText}
+	  				/>
+	  				<View style={{flex: 1, alignItems: 'center'}}>
+	  					<Text style={{color: 'white', fontSize: 24, position: 'relative', top: -300}}>{loadText}</Text>
+	  				</View>
+				</View>
+			);
 		}
 		//console.log(len)
 		if (len == 0) {
