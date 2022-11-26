@@ -19,11 +19,6 @@ if (firebase.apps.length == 0) {
 	app = firebase.app(); 
 } 
 
-firebase.firestore().settings({
-    cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
-    merge: true
-});
-
 //firebase.firestore().enablePersistence();
 
 
