@@ -75,8 +75,12 @@ export default function App({navigation}) {
 			let correct = 0;
 			let incorrect = 0;
 			let notAnswered = 0;
-			const total = data[index].card.length;
-			
+			let total;
+			try {
+				total = data[index].card.length;
+			} catch (err) {
+				return null;
+			}
 			for (let i = 0; i < total; i++) {
 				switch (data[index].card[i].isCorrect) {
 					case true:
@@ -108,10 +112,10 @@ export default function App({navigation}) {
 		
 		const BoxInfo = ({correct, incorrect, notAnswered, styled}) => {
 			return (
-				<Animated.View style={[styled, {width: 120, height: 80, backgroundColor: 'black', borderRadius: 10, borderWidth: 2, borderColor: 'white', position: 'absolute', zIndex: 10, marginTop: 20, marginLeft: 5, padding: 5}]}>
-					<Text style={{color: 'white'}}>Correct: {correct}</Text>
-					<Text style={{color: 'white'}}>Incorrect: {incorrect}</Text>
-					<Text style={{color: 'white'}}>Not Answered: {notAnswered}</Text>
+				<Animated.View style={[styled, {width: 120, height: 60, backgroundColor: 'black', borderRadius: 10, borderWidth: 2, borderColor: 'white', position: 'absolute', zIndex: 10, marginTop: 15, marginLeft: 5, padding: 5}]}>
+					<Text style={{fontSize: 12, color: 'white'}}>Correct: {correct}</Text>
+					<Text style={{fontSize: 12, color: 'white'}}>Incorrect: {incorrect}</Text>
+					<Text style={{fontSize: 12, color: 'white'}}>Not Answered: {notAnswered}</Text>
 				</Animated.View>
 			);
 		}
