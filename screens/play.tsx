@@ -137,7 +137,7 @@ export default function Play({route, navigation}) {
 		if (!finished) {
 		return (
 			<View style={{flex: 1, backgroundColor: 'black'}}>
-			<AnimatedTouchableOpacity style={[styles.box, {transform: [{scaleX: questionValue}]}]}
+			{dontShow ? <AnimatedTouchableOpacity style={[styles.box, {transform: [{scaleX: questionValue}]}]}
 			onPress={() => {
 				setShowAnswer(true)
 			}}>
@@ -148,7 +148,7 @@ export default function Play({route, navigation}) {
 					enableExperimentalMarginCollapsing={true}
 				/>
 				</ScrollView>
-			</AnimatedTouchableOpacity> 
+			</AnimatedTouchableOpacity> : null}
 			<View style={{flex :1}}>
 				{showAnswer || !dontShow ? <Animated.View style={[styles.box, {transform: [{scaleX: answerScale}]}]}>
 					<ScrollView style={{flexGrow: 1}}>
