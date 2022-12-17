@@ -55,6 +55,14 @@ export default function Play({route, navigation}) {
 		return html
 	}
 	
+	const changeStorageItems = (n, value) => {
+		db.collection('users').doc(auth.currentUser?.uid).get().then(doc => {
+			let data = doc.data().data;
+			data[route.params.i].card[n].isCorrect = value;
+			db.collection('users').doc(auth.currentUser?.uid).set({data});
+		})
+	}
+	
 	const DisplayContent = props => {
 		const questionValue = useRef(new Animated.Value(1)).current;
 		const answerScale = useRef(new Animated.Value(0)).current;
@@ -164,6 +172,7 @@ export default function Play({route, navigation}) {
 				<TouchableOpacity style={styles.incorrect}
 				onPress={() => {
 					setIncorrect(incorrect + 1)
+					changeStorageItems(n, false)
 					if (n + 1 != cards.length) {
 						setN(n + 1);
 						setShowAnswer(false);
@@ -176,6 +185,7 @@ export default function Play({route, navigation}) {
 				<TouchableOpacity style={styles.correct}
 				onPress={() => {
 					setCorrect(correct + 1)
+					changeStorageItems(n, true)
 					if (n + 1 != cards.length) {
 						setN(n + 1);
 						setShowAnswer(false);

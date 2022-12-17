@@ -200,7 +200,8 @@ export default function TempScreen({route, navigation}) {
 			const info = storageItems;
 			info[route.params.i].card.push({
 				question: '',
-				answer: ''
+				answer: '',
+				isCorrect: null
 			});
 			setStorageItems(info)
 			save(info)
@@ -222,13 +223,15 @@ export default function TempScreen({route, navigation}) {
 				if (!info[route.params.i].card) {
 					info[route.params.i].card = [{
 						question: '',
-						answer: ''
+						answer: '',
+						isCorrect: null
 					}]
 				}
 				if (!info[route.params.i].card[n]) {
 					info[route.params.i].card.push({
 						question: '',
-						answer: ''
+						answer: '',
+						isCorrect: null
 					})
 				}
 				db.collection('users').doc(auth.currentUser?.uid).set({data: info})

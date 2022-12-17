@@ -55,7 +55,34 @@ export default function App({navigation}) {
 		const [value, setValue] = useState(false);
 		const [renderComponent, setRenderComponent] = useState(true);
 		
-		console.log(index)
+		const QuestionInfo = () => {
+			let correct = 0;
+			let incorrect = 0;
+			let notAnswered = 0;
+			const total = data[index].card.length;
+			
+			for (let i = 0; i < total; i++) {
+				switch (data[index].card[i].isCorrect) {
+					case true:
+						correct += 1;
+						break;
+					case false:
+						incorrect += 1;
+						break;
+					default: 
+						notAnswered += 1;
+						break;
+				}
+			}
+			
+			return (
+				<View style={{flex: 1, flexDirection: 'row'}}>
+					<View style={{backgroundColor: 'green', height: 10, width: `${(correct / total) * 100}%` }} />
+					<View style={{backgroundColor: '#af0000', height: 10, width: `${(incorrect / total) * 100}%` }} />
+					<View style={{backgroundColor: '#565656', height: 10, width: `${(notAnswered / total) * 100}%`}} />
+				</View>
+			);
+		}
 		
 		// This is used to stop the search bar from emptying on removal of card set
 		if (renderComponent) {  
@@ -100,6 +127,7 @@ export default function App({navigation}) {
 							</View>) : null}
 						</View>
 						{!selectionBox ? <View style={styles.Card}>
+						<QuestionInfo style={{position: 'absolute', top: 0}} />
 						<Text style={{padding: 5, fontSize: 24, color: 'white', width: '65%'}}>{data[index].title}</Text>
 						<Text style={{padding: 5, color: 'white', fontSize: 15}}>{data[index].description}</Text>
 						<TouchableOpacity
@@ -114,8 +142,6 @@ export default function App({navigation}) {
 											onPress: () => {
 												data.splice(index, 1);
 												db.collection('users').doc(auth.currentUser?.uid).set({data});
-												updateStorageItems();
-												//setRenderComponent(false)
 											}
 										},
 										{
