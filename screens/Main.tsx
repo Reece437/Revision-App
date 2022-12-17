@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Alert, Dimensions, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, Animated, FlatList } from 'react-native';
+import { TouchableWithoutFeedback, Alert, Dimensions, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, Animated, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SearchBar, CheckBox, BottomBar } from '../components/MainComponents';
 import {
@@ -56,6 +56,22 @@ export default function App({navigation}) {
 		const [renderComponent, setRenderComponent] = useState(true);
 		
 		const QuestionInfo = () => {
+			const scale = useRef(new Animated.Value(0)).current;
+			
+			const animation = () => {
+				Animated.timing(scale, {
+					duration: 300,
+					toValue: 1,
+					useNativeDriver: true
+				}).start(({finished}) => setTimeout(() => {
+					Animated.timing(scale, {
+						duration: 300,
+						toValue: 0,
+						useNativeDriver: true
+					}).start()
+				}, 3000))
+			}
+			
 			let correct = 0;
 			let incorrect = 0;
 			let notAnswered = 0;
@@ -76,11 +92,27 @@ export default function App({navigation}) {
 			}
 			
 			return (
-				<View style={{flex: 1, flexDirection: 'row'}}>
-					<View style={{backgroundColor: 'green', height: 10, width: `${(correct / total) * 100}%` }} />
-					<View style={{backgroundColor: '#af0000', height: 10, width: `${(incorrect / total) * 100}%` }} />
-					<View style={{backgroundColor: '#565656', height: 10, width: `${(notAnswered / total) * 100}%`}} />
+				<View>
+					<TouchableWithoutFeedback style={{flex: 1}}
+					onLongPress={animation}>
+						<View style={{flex: 1, flexDirection: 'row'}}>
+							<View style={{backgroundColor: 'green', height: 10, width: `${(correct / total) * 100}%` }} />
+							<View style={{backgroundColor: '#af0000', height: 10, width: `${(incorrect / total) * 100}%` }} />
+							<View style={{backgroundColor: '#565656', height: 10, width: `${(notAnswered / total) * 100}%`}} />
+						</View>
+					</TouchableWithoutFeedback>
+					<BoxInfo styled={{transform: [{scale}]}} correct={correct} incorrect={incorrect} notAnswered={notAnswered} />
 				</View>
+			);
+		}
+		
+		const BoxInfo = ({correct, incorrect, notAnswered, styled}) => {
+			return (
+				<Animated.View style={[styled, {width: 120, height: 80, backgroundColor: 'black', borderRadius: 10, borderWidth: 2, borderColor: 'white', position: 'absolute', zIndex: 10, marginTop: 20, marginLeft: 5, padding: 5}]}>
+					<Text style={{color: 'white'}}>Correct: {correct}</Text>
+					<Text style={{color: 'white'}}>Incorrect: {incorrect}</Text>
+					<Text style={{color: 'white'}}>Not Answered: {notAnswered}</Text>
+				</Animated.View>
 			);
 		}
 		
