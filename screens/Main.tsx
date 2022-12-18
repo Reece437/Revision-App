@@ -13,7 +13,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 
-
 export default function App({navigation}) {
 	const [selectionBox, setSelectionBox] = useState(false);
 	const [mergeItems, setMergeItems] = useState([]);
@@ -440,7 +439,8 @@ export default function App({navigation}) {
 				</View>
 			</AnimatedTouchableNativeFeedback> : null}
 			{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addSecondary, {transform: [{scale: scaleValue}]}]}
-				onPress={() => addLocalStorageItems()}>
+				onPress={() => addLocalStorageItems()}
+				onLongPress={() => navigation.navigate('AddMultiple')}>
 				<Icon name="create-outline" size={24} />
 			</AnimatedTouchableOpacity> : null}
 			{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addTertiary, {transform: [{scale: scaleValue}]}]}

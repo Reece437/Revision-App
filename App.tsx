@@ -9,6 +9,7 @@ import Other from './screens/CreateCard';
 import play from './screens/play';
 import Settings from './screens/Settings';
 import Login from './screens/Login';
+import AddMultiple from './screens/AddMultiple';
 import * as SplashScreen from 'expo-splash-screen';
 import { auth } from './firebase'
 
@@ -47,9 +48,9 @@ export default function App() {
     	<Stack.Navigator initialRouteName={signedIn ? 'Home' : 'Login'} screenOptions={{animationEnabled: false}}>
     		<Stack.Screen options={{headerShown: false}} name="Login" component={Login} />
     		<Stack.Screen options={{headerShown: false}} name="Home" component={Home} />
-    		<Stack.Screen options={{headerShown: false}} name="Settings" component={Settings} />
     		<Stack.Screen options={{headerShown: false}} name="Other" component={Other} />
     		<Stack.Screen options={{headerShown: false}} name="Play" component={play} />
+    		<Stack.Screen options={{headerShown: false}} name="AddMultiple" component={AddMultiple} />
     	</Stack.Navigator>
     </NavigationContainer>
   );
