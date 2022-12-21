@@ -321,7 +321,6 @@ export default function App({navigation}) {
 				</View>
 			);
 		}
-		//console.log(len)
 		if (len == 0) {
 			return (
 				<View style={styles.Card}>
@@ -381,49 +380,6 @@ export default function App({navigation}) {
 				);
 			}
 		}
-		/*else {
-			for (let i = 0; i < len; i++) {
-				if ((data[i].title.toLowerCase()).includes(searchText.toLowerCase())) {
-					x.push(<RevisionCard key={i} data={storageItems} index={i} />);
-				}
-  			}
-  			if (x.length == 0) {
-  				x.push(<NoResult />)
-  			}
-  			if (selectionBox) {
-  				return (
-  					<View style={{flex: 1}}>
-  						<TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
-  							<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
-  						</TouchableOpacity>
-  						<View style={{margin: 5, paddingBottom: 40}}>
-  							<SearchBar 
-  								onTextChange={newText => {
-  									setSearchText(newText);
-  								}}
-  								value={searchText}
-  							/>
-  						</View>
-  						<ScrollView style={{flexGrow: 0.9}}>{x}</ScrollView>
-  					</View>
-  				);
-  			}
-  			return (
-  				<View style={{flex: 1}}>
-  					<View style={{margin: 5, paddingBottom: 40}}>
-  						<SearchBar 
-  							onTextChange={newText => {
-  								setSearchText(newText);
-  							}}
-  							value={searchText}
-  						/>
-  					</View>
-  					<ScrollView style={{flexGrow: 0.9}}>
-  						{x}
-  					</ScrollView>
-  				</View>
-  			);
-		}*/
 	}
 	
 	const addLocalStorageItems = (): void => {
@@ -521,15 +477,22 @@ export default function App({navigation}) {
 	
 	useEffect(() => {
 		const unsubscribe = db.collection('users').doc(auth.currentUser?.uid).onSnapshot(doc => {
-			updateStorageItems();
+			let data = doc.data().data;
+			try {
+				if (data.length != storageItems.length) {
+					updateStorageItems();
+				}
+			} catch(err) {
+				updateStorageItems();
+			}
+			
 		});
 		return unsubscribe;
-	}, [])
+	}, []);
 	
 	return (
 		<View style={styles.container}>
 			<AllCards />
-			{/*<ResetStorage />*/}
 			<AddButton />
 			<BottomBar />
 			<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />

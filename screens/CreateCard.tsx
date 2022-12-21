@@ -276,7 +276,7 @@ export default function TempScreen({route, navigation}) {
 							setStorageItems(data);
 							setCount(count + 1)
 						}
-					}} style={{width: 35, marginLeft: 310}}>
+					}} style={{width: 35, marginLeft: 320}}>
 						<Text style={{textAlign: 'center', fontSize: 25}}>🗑</Text>
 					</TouchableOpacity>
 					<BoxCards data={data} onPress={setN} />

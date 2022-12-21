@@ -21,6 +21,7 @@ export default function Play({route, navigation}) {
 	const [cards, setCards] = useState([]);
 	
 	const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+	const AnimatedTouchableWithoutFeedback = Animated.createAnimatedComponent(TouchableWithoutFeedback)
 	
 	const removeUnfinishedCards = (data: object[]): object[] => {
 		let corrected: object[] = [];
@@ -63,9 +64,20 @@ export default function Play({route, navigation}) {
 		})
 	}
 	
+	const lastResult = (data) => {
+		if (data.isCorrect === null) {
+			return "You have not attempted this question before"
+		} else if (data.isCorrect) {
+			return "Last attempt was correct"
+		}
+		return "Last attempt was incorrect"
+	}
+	
 	const DisplayContent = props => {
 		const questionValue = useRef(new Animated.Value(1)).current;
 		const answerScale = useRef(new Animated.Value(0)).current;
+		const opacityValue = useRef(new Animated.Value(1)).current;
+		const textScale = useRef(new Animated.Value(1)).current;
 		
 		const [showAnswer, setShowAnswer] = useState(false);
 		const [correct, setCorrect] = useState(0);
@@ -102,11 +114,17 @@ export default function Play({route, navigation}) {
 	
 		useEffect(() => {
 			if (showAnswer) {
-				Animated.timing(questionValue, {
-					toValue: 0,
-					duration: 500,
-					useNativeDriver: true
-				}).start(({finished}) => {
+				Animated.parallel([
+					Animated.timing(questionValue, {
+						toValue: 0,
+						duration: 500,
+						useNativeDriver: true
+					}),
+					Animated.spring(textScale, {
+						toValue: 0,
+						useNativeDriver: true
+					})
+				]).start(({finished}) => {
 					setDontShow(false)
 					Animated.timing(answerScale, {
 						toValue: 1,
@@ -121,11 +139,18 @@ export default function Play({route, navigation}) {
 					useNativeDriver: true
 				}).start(({finished}) => {
 					setDontShow(true)
-					Animated.timing(questionValue, {
-						toValue: 1,
-						duration: 500,
-						useNativeDriver: true
-					}).start()
+					Animated.parallel([
+						Animated.timing(questionValue, {
+							toValue: 1,
+							duration: 500,
+							useNativeDriver: true
+						}),
+						Animated.spring(textScale, {
+							toValue: 1,
+							useNativeDriver: true
+						})
+					]).start();
+					
 				})
 			}
 		}, [showAnswer])
@@ -145,18 +170,37 @@ export default function Play({route, navigation}) {
 		if (!finished) {
 		return (
 			<View style={{flex: 1, backgroundColor: 'black'}}>
-			{dontShow ? <AnimatedTouchableOpacity style={[styles.box, {transform: [{scaleX: questionValue}]}]}
+			<Animated.Text style={{position: 'absolute', top: StatusBar.currentHeight + 10, left: 20, color: 'white', fontSize: 16, fontStyle: 'italic', transform: [{scale: textScale}]}}>
+				{lastResult(data[n])}
+			</Animated.Text>
+			{dontShow ? <AnimatedTouchableWithoutFeedback style={{opacity: opacityValue}}
+			onPressIn={() => {
+				Animated.timing(opacityValue, {
+					toValue: 0.3,
+					duration: 80,
+					useNativeDriver: true
+				}).start()
+			}}
+			onPressOut={() => {
+				Animated.timing(opacityValue, {
+					toValue: 1,
+					duration: 80,
+					useNativeDriver: true
+				}).start()
+			}}
 			onPress={() => {
 				setShowAnswer(true)
 			}}>
-				<ScrollView style={{flexGrow: 1}}>
-				<RenderHTML
-					source={{html: sourceQuestion}}
-					contentWidth={400}
-					enableExperimentalMarginCollapsing={true}
-				/>
-				</ScrollView>
-			</AnimatedTouchableOpacity> : null}
+				<Animated.View style={[styles.box, {transform: [{scaleX: questionValue}]}]}>
+					<ScrollView style={{flexGrow: 1}}>
+					<RenderHTML
+						source={{html: sourceQuestion}}
+						contentWidth={400}
+						enableExperimentalMarginCollapsing={true}
+					/>
+					</ScrollView>
+				</Animated.View>
+			</AnimatedTouchableWithoutFeedback> : null}
 			<View style={{flex :1}}>
 				{showAnswer || !dontShow ? <Animated.View style={[styles.box, {transform: [{scaleX: answerScale}]}]}>
 					<ScrollView style={{flexGrow: 1}}>
@@ -230,10 +274,10 @@ export default function Play({route, navigation}) {
 const styles = StyleSheet.create({
 	box: {
 		position: 'absolute',
-		top: '5%',
+		top: '10%',
 		left: '5%',
 		width: '90%',
-		height: '85%',
+		height: '80%',
 		borderWidth: 2,
 		borderRadius: 10,
 		borderColor: 'white',
