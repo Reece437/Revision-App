@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, TouchableOpacity, View, Text, TextInput, StatusBar} from 'react-native';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ScrollView, TouchableOpacity, View, Text, TextInput, StatusBar, Animated } from 'react-native';
 import { styles } from '../styles/AddMultipleStyles';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,8 @@ export default function App({navigation}) {
 	const [, updateState] = useState();
 	const forceUpdate = useCallback(() => updateState({}), []);
 	
+	const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+	
 	const [cardSets, setCardSets] = useState([{
 		title: '',
 		description: '',
@@ -16,7 +18,8 @@ export default function App({navigation}) {
 			isCorrect: null,
 			question: '',
 			answer: ''
-		}]
+		}],
+		lastAttempted: null
 	}]);
 	
 	const NewCardSet = ({index, data, func}) => {
@@ -103,17 +106,20 @@ export default function App({navigation}) {
 		navigation.replace('Home');
 	}
 	
-	const CreateButton = () => (
-		<TouchableOpacity style={{position: 'absolute', right: 0, borderRadius: 30, width: 120, height: 50, marginBottom: 50, marginRight: 10, marginTop: 10}}
-		onPress={create}>
-			<LinearGradient colors={['purple', 'blue']}
-				style={{borderRadius: 30, width: 120, height: 50, alignItems: 'center', justifyContent: 'center'}}
-				start={{x: 0.7, y: 0.1}}
-			>
-				<Text style={{color: 'white', fontSize: 24}}>Create</Text>
-			</LinearGradient>
-		</TouchableOpacity>
-	);
+	const CreateButton = () => {
+		
+		return (
+			<TouchableOpacity style={{position: 'absolute', right: 0, borderRadius: 30, width: 120, height: 50, marginBottom: 50, marginRight: 10, marginTop: 10}}
+			onPress={create}>
+				<LinearGradient colors={['purple', 'blue']}
+					style={{borderRadius: 30, width: 120, height: 50, alignItems: 'center', justifyContent: 'center'}}
+					start={{x: 0.7, y: 0.1}}
+				>
+					<Text style={{color: 'white', fontSize: 24}}>Create</Text>
+				</LinearGradient>
+			</TouchableOpacity>
+		);
+	}
 	
 	return (
 		<ScrollView style={[styles.container, {paddingTop: StatusBar.currentHeight}]}>

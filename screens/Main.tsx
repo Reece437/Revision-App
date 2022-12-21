@@ -49,6 +49,56 @@ export default function App({navigation}) {
 		});
 	}
 	
+	const calculateLastAttempt = (data, index) => {
+		const date = new Date();
+		const day = date.getDate();
+		const month = date.getMonth() + 1;
+		const year = date.getFullYear();
+		
+		const info = data[index].lastAttempted
+		
+		if (info === null) {
+			return "Has not been attempted"
+		}
+		
+		let dateString;
+		if (day == info.day && month == info.month && year == info.year) {
+			dateString = "Today";
+		} else if (day == info.day + 1 && month == info.month && year == info.year) {
+			dateString = "Yesterday";
+		} else {
+			dateString = `${info.day}/${info.month}/${info.year}`;
+		}
+		
+		return `${dateString} at ${info.hour}:${info.minute}`
+	}
+	
+	const setLastAttempted = () => {
+		const date = new Date();
+		
+		const day = date.getDate();
+		const month = date.getMonth() + 1;
+		const year = date.getFullYear();
+		let hour = (date.getHours()).toString();
+		let minute = (date.getMinutes()).toString();
+		
+		if (minute.length == 1) {
+			minute = "0" + minute;
+		}
+		
+		if (hour.length == 1) {
+			hour = "0" + hour;
+		}
+		
+		return {
+			day: day,
+			month: month,
+			year: year,
+			hour: hour,
+			minute: minute
+		}
+	}
+	
 	const RevisionCard = (props) => {
 		let {data, index} = props;
 		const [value, setValue] = useState(false);
@@ -97,11 +147,11 @@ export default function App({navigation}) {
 			return (
 				<View>
 					<TouchableWithoutFeedback style={{flex: 1}}
-					onLongPress={animation}>
-						<View style={{flex: 1, flexDirection: 'row'}}>
-							<View style={{backgroundColor: 'green', height: 10, width: `${(correct / total) * 100}%` }} />
-							<View style={{backgroundColor: '#af0000', height: 10, width: `${(incorrect / total) * 100}%` }} />
-							<View style={{backgroundColor: '#565656', height: 10, width: `${(notAnswered / total) * 100}%`}} />
+					onPress={animation}>
+						<View style={{flex: 1, flexDirection: 'row', opacity: 0.6}}>
+							<View style={{backgroundColor: 'green', height: 8, width: `${(correct / total) * 100}%` }} />
+							<View style={{backgroundColor: '#af0000', height: 8, width: `${(incorrect / total) * 100}%` }} />
+							<View style={{backgroundColor: '#565656', height: 8, width: `${(notAnswered / total) * 100}%`}} />
 						</View>
 					</TouchableWithoutFeedback>
 					<BoxInfo styled={{transform: [{scale}]}} correct={correct} incorrect={incorrect} notAnswered={notAnswered} />
@@ -165,6 +215,7 @@ export default function App({navigation}) {
 						<QuestionInfo style={{position: 'absolute', top: 0}} />
 						<Text style={{padding: 5, fontSize: 24, color: 'white', width: '65%'}}>{data[index].title}</Text>
 						<Text style={{padding: 5, color: 'white', fontSize: 15}}>{data[index].description}</Text>
+						<Text style={{padding: 5, color: 'white', fontSize: 12, fontStyle: 'italic'}}>Last Attempted: {calculateLastAttempt(data, index)}</Text>
 						<TouchableOpacity
 							style={styles.trash}
 							onPress={() => {
@@ -195,6 +246,7 @@ export default function App({navigation}) {
 								db.collection('users').doc(auth.currentUser?.uid).get().then(doc => {
 									data = doc.data().data;
 									let firstCardSet = data[index];
+									data[index].lastAttempted = setLastAttempted();
 									data.splice(index, 1);
 									data.unshift(firstCardSet);
 									db.collection('users').doc(auth.currentUser?.uid).set({data})
@@ -378,7 +430,8 @@ export default function App({navigation}) {
 		let data = storageItems;
 		data.unshift({
 			title: '',
-			description: ''
+			description: '',
+			lastAttempted: null
 		});
 		db.collection('users').doc(auth.currentUser?.uid).set({data});
 		updateStorageItems();
@@ -397,7 +450,8 @@ export default function App({navigation}) {
 		mergeItems.sort();
 		let newCardSet = {
 			title: 'Merged card set',
-			description: 'This is a merged card set'
+			description: 'This is a merged card set',
+			lastAttempted: null
 		};
 		newCardSet.card = [];
 		for (let i: number = 0; i < mergeItems.length; i++) {

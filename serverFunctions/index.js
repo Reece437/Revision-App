@@ -7,10 +7,8 @@ async function main() {
 		let data = doc.data().data
 		let id = doc.id;
 		for (let i = 0; i < data.length; i++) {
-			for (let j = 0; j < data[i].card.length; j++) {
-				if (!data[i].card[j].isCorrect) {
-					data[i].card[j].isCorrect = null;
-				}
+			if (!data[i].lastAttempted) {
+				data[i].lastAttempted = null
 			}
 		}
 		console.log(data);
