@@ -20,10 +20,14 @@ export const removeUntitled = (data: object[]): object[] => {
 * a question and an answer
 */
 export const isMergable = (data, index: number): boolean => {
-	for (let i = 0; i < data[index].card.length; i++) {
-		if (data[index].card[i].question != '' ||
-		data[index].card[i].answer != '') return true;
-	} return false;
+	try {
+		for (let i = 0; i < data[index].card.length; i++) {
+			if (data[index].card[i].question != '' ||
+			data[index].card[i].answer != '') return true;
+		} return false;
+	} catch(err) {
+		return false;
+	}
 }
 
 // Stops title from appearing inside buttons
