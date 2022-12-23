@@ -17,25 +17,33 @@ import { RevisionCard } from '../components/RevisionCard';
 
 const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSets, setSelectionBox, storageItems}) => {
 	const [render, setRender] = useState(false);
-	const [show, setShow] = useState(false)
 	const scaleValue = useRef(new Animated.Value(0)).current;
+	const [values, setValues] = useState([
+		0, 
+		scaleValue,
+		1
+	]);
+	const [index, setIndex] = useState(0)
+	const [, updateState] = useState();
+	const forceUpdate = React.useCallback(() => updateState({}), []);
 	
 	
 	useEffect(() => {
+		setIndex(1)
 		if (render) {
 			Animated.spring(scaleValue, {
 				friction: 6,
 				useNativeDriver: true,
 				toValue: 1
-			}).start(({finished}) => setShow(true) )
+			}).start(({finished}) => setIndex(2))
 		} else {
-			setShow(false)
 			Animated.spring(scaleValue, {
 				friction: 6,
 				useNativeDriver: true,
 				toValue: 0
-			}).start()
+			}).start(({finished}) => setIndex(0))
 		}
+		forceUpdate();
 	}, [render]);
 	
 	return (
@@ -46,13 +54,13 @@ const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSe
 				<Text style={[styles.addButtonText]}>+</Text>
 			</View>
 		</AnimatedTouchableNativeFeedback> : null}
-		{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addSecondary, {transform: [{scale: !show ? scaleValue : 1}]}]}
+		{!selectionBox && index != 0 ? <AnimatedTouchableOpacity style={[styles.addSecondary, {transform: [{scale: values[index]}]}]}
 			onPress={addLocalStorageItems}
 			onLongPress={AddMultiple}>
 			<Icon name="create-outline" size={24} />
 		</AnimatedTouchableOpacity> : null}
-		{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addTertiary, {transform: [{scale: !show ? scaleValue : 1}]}]}
-			onPress={async() => {
+		{!selectionBox && index != 0 ? <AnimatedTouchableOpacity style={[styles.addTertiary, {transform: [{scale: values[index]}]}]}
+			onPress={() => {
 			if (storageItems.length <= 1) {
 				alert("You don't have enough card sets to use the merge feature");
 				setRender(false);
