@@ -4,12 +4,11 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Home from './screens/Main';
-import Other from './screens/CreateCard';
-import play from './screens/play';
-import Settings from './screens/Settings';
-import Login from './screens/Login';
-import AddMultiple from './screens/AddMultiple';
+import Home from './screens/Main/Main';
+import Other from './screens/CreateCard/CreateCard';
+import play from './screens/play/play';
+import Login from './screens/Login/Login';
+import AddMultiple from './screens/AddMultiple/AddMultiple';
 import * as SplashScreen from 'expo-splash-screen';
 import { auth } from './firebase'
 

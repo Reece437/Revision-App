@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import {AppState, TouchableOpacity, View, TextInput, Text, Platform, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView, StatusBar } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {actions, RichEditor, RichToolbar} from "react-native-pell-rich-editor";
-import { auth, db } from '../firebase';
+import { auth, db } from '../../firebase';
 
 export default function TempScreen({route, navigation}) {
 	const richText1 = useRef();

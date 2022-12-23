@@ -1,77 +1,76 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TouchableWithoutFeedback, Alert, Dimensions, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, Animated, FlatList } from 'react-native';
+import { TouchableWithoutFeedback, Alert, Dimensions, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SearchBar, CheckBox, BottomBar } from '../components/MainComponents';
+import { SearchBar, CheckBox, BottomBar } from './components/MainComponents';
 import {
 	isMergable,
 	removeUntitled,
 	titleLengthFix,
 	duplicateCheck
-} from '../functions/MainFunctions';
-import { auth, db } from '../firebase';
+} from './MainFunctions';
+import { auth, db } from '../../firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Overlay } from '../components/Overlay';
-import { RevisionCard } from '../components/RevisionCard';
+import { Overlay } from './components/Overlay';
+import { RevisionCard } from './components/RevisionCard';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming
+} from 'react-native-reanimated';
 
 
 const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSets, setSelectionBox, storageItems}) => {
 	const [render, setRender] = useState(false);
-	const scaleValue = useRef(new Animated.Value(0)).current;
-	const [values, setValues] = useState([
-		0, 
-		scaleValue,
-		1
-	]);
-	const [index, setIndex] = useState(0)
-	const [, updateState] = useState();
-	const forceUpdate = React.useCallback(() => updateState({}), []);
+	const scaleValue = useSharedValue(0)
+	const scaleValueStyle = useAnimatedStyle(() => {
+		return {
+			transform: [{scale: withSpring(scaleValue.value, {
+				mass: 0.8
+			})}]
+		}
+	})
 	
 	
 	useEffect(() => {
-		setIndex(1)
 		if (render) {
-			Animated.spring(scaleValue, {
-				friction: 6,
-				useNativeDriver: true,
-				toValue: 1
-			}).start(({finished}) => setIndex(2))
+			scaleValue.value = 1
 		} else {
-			Animated.spring(scaleValue, {
-				friction: 6,
-				useNativeDriver: true,
-				toValue: 0
-			}).start(({finished}) => setIndex(0))
+			scaleValue.value = 0
 		}
-		forceUpdate();
 	}, [render]);
 	
 	return (
 		<>
-		{!selectionBox ? <AnimatedTouchableNativeFeedback background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 35)}
+		{!selectionBox ? <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 35)}
 			onPress={() => setRender(!render)}>
 			<View style={styles.addButton}>
 				<Text style={[styles.addButtonText]}>+</Text>
 			</View>
-		</AnimatedTouchableNativeFeedback> : null}
-		{!selectionBox && index != 0 ? <AnimatedTouchableOpacity style={[styles.addSecondary, {transform: [{scale: values[index]}]}]}
-			onPress={addLocalStorageItems}
-			onLongPress={AddMultiple}>
-			<Icon name="create-outline" size={24} />
-		</AnimatedTouchableOpacity> : null}
-		{!selectionBox && index != 0 ? <AnimatedTouchableOpacity style={[styles.addTertiary, {transform: [{scale: values[index]}]}]}
-			onPress={() => {
-			if (storageItems.length <= 1) {
-				alert("You don't have enough card sets to use the merge feature");
-				setRender(false);
-			} else {
-				setRender(false)
-				setSelectionBox(true); 
-			}
-			//forceUpdate();
-		}}>
-			<Icon name="git-network-outline" size={24} />
-		</AnimatedTouchableOpacity> : null}
+		</TouchableNativeFeedback> : null}
+		{!selectionBox ? <Animated.View style={[{zIndex: 11}, styles.addSecondary, scaleValueStyle]}>
+			<TouchableOpacity
+				onPress={addLocalStorageItems}
+				onLongPress={AddMultiple}>
+				<Icon name="create-outline" size={24} />
+			</TouchableOpacity> 
+		</Animated.View>: null}
+		{!selectionBox ? <Animated.View style={[{zIndex: 11}, styles.addTertiary, scaleValueStyle]}>
+			<TouchableOpacity 
+				onPress={() => {
+				if (storageItems.length <= 1) {
+					alert("You don't have enough card sets to use the merge feature");
+					setRender(false);
+				} else {
+					setRender(false)
+					setSelectionBox(true); 
+				}
+				//forceUpdate();
+			}}>
+				<Icon name="git-network-outline" size={24} />
+			</TouchableOpacity>
+		</Animated.View> : null}
 		{selectionBox ? <TouchableNativeFeedback
 		background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 35)}
 		onPress={mergeCardSets}>
@@ -241,6 +240,7 @@ export default function App({navigation}) {
 	try {
 		return (
 			<View style={styles.container}>
+				{visible ? <Overlay data={storageItems} outsideTouch={() => setVisible(false)} /> : null}
 				<View style={{flex: 1}}>
 					{selectionBox ? <TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
 	  						<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
@@ -276,7 +276,7 @@ export default function App({navigation}) {
 	  					style={{marginBottom: 55}}
 	  				/> : <NoResult />}
 	  			</View>
-				<BottomBar />
+	  			<BottomBar />
 				<AddButton selectionBox={selectionBox} setSelectionBox={setSelectionBox} addLocalStorageItems={addLocalStorageItems}
 				mergeCardSets={mergeCardSets} AddMultiple={() => navigation.navigate('AddMultiple')} storageItems={storageItems} />
 				<StatusBar backgroundColor={'transparent'} barStyle="light-content" translucent />

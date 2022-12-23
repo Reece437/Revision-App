@@ -1,9 +1,13 @@
 import { useState, useRef } from 'react';
-import { StyleSheet, StatusBar, Dimensions, View, TouchableWithoutFeedback, TouchableOpacity, Text, Animated, Alert } from 'react-native';
-import { isMergable } from '../functions/MainFunctions'
+import { StyleSheet, StatusBar, Dimensions, View, TouchableWithoutFeedback, TouchableOpacity, Text, Alert } from 'react-native';
+import { isMergable } from '../MainFunctions'
 import { CheckBox } from './MainComponents'
-import { auth, db } from '../firebase'
-
+import { auth, db } from '../../../firebase'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
 
 const setLastAttempted = () => {
 	const date = new Date();
@@ -59,23 +63,24 @@ export const RevisionCard = (props) => {
 	let {data, index, selectionBox, searchText, merge, mergeItems} = props;
 	const [value, setValue] = useState(mergeItems.includes(index));
 	const [renderComponent, setRenderComponent] = useState(true);
+	const scaleValue = useSharedValue(0);
+	
+	const animation = () => {
+		scaleValue.value = 1
+		setTimeout(() => {
+			scaleValue.value = 0
+		}, 3400)
+	}
+	
+	const scaleValueStyle = useAnimatedStyle(() => {
+		return {
+			transform: [{scale: withTiming(scaleValue.value, {
+				duration: 400
+			})}]
+		}
+	});
 	
 	const QuestionInfo = () => {
-		const scale = useRef(new Animated.Value(0)).current;
-		
-		const animation = () => {
-			Animated.timing(scale, {
-				duration: 300,
-				toValue: 1,
-				useNativeDriver: true
-			}).start(({finished}) => setTimeout(() => {
-				Animated.timing(scale, {
-					duration: 300,
-					toValue: 0,
-					useNativeDriver: true
-				}).start()
-			}, 3000))
-		}
 		
 		let correct = 0;
 		let incorrect = 0;
@@ -110,7 +115,7 @@ export const RevisionCard = (props) => {
 						<View style={{backgroundColor: '#565656', height: 8, width: `${(notAnswered / total) * 100}%`}} />
 					</View>
 				</TouchableWithoutFeedback>
-				<BoxInfo styled={{transform: [{scale}]}} correct={correct} incorrect={incorrect} notAnswered={notAnswered} />
+				<BoxInfo styled={scaleValueStyle} correct={correct} incorrect={incorrect} notAnswered={notAnswered} />
 			</View>
 		);
 	}

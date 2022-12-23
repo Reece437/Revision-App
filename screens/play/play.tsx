@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { auth, db } from '../firebase';
+import { auth, db } from '../../firebase';
 
 export default function Play({route, navigation}) {
 	const [all, setAll] = useState();

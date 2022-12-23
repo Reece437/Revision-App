@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SafeAreaView, View, Platform, KeyboardAvoidingView, Text, TextInput, Animated, Image, useColorScheme, TouchableOpacity } from 'react-native';
-import { auth, db } from '../firebase';
-import { styles } from '../styles/LoginStyles';
+import { auth, db } from '../../firebase';
+import { styles } from './LoginStyles';
 
 
 export default function AccountSetup({navigation}) {
@@ -41,7 +41,7 @@ export default function AccountSetup({navigation}) {
 		<KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS == 'ios' ? 'padding' : 'height'}>
 			<SafeAreaView style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
 			<Text style={{fontSize: 40, fontWeight: 'bold', paddingTop: 40, textAlign: 'center'}}>Welcome, to your Revision App</Text>
-			<Image source={require('../assets/download.jpg')} style={{borderRadius: 150, transform: [{scale: 0.8}]}} />
+			<Image source={require('../../assets/download.jpg')} style={{borderRadius: 150, transform: [{scale: 0.8}]}} />
 			<TextInput
 				placeholder="Email"
 				value={email}

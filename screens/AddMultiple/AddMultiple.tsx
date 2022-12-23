@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ScrollView, TouchableOpacity, View, Text, TextInput, StatusBar, Animated } from 'react-native';
-import { styles } from '../styles/AddMultipleStyles';
+import { styles } from './AddMultipleStyles';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { auth, db } from '../firebase'
+import { auth, db } from '../../firebase'
 
 export default function App({navigation}) {
 	const [, updateState] = useState();
