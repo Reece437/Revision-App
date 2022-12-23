@@ -17,7 +17,9 @@ import { RevisionCard } from '../components/RevisionCard';
 
 const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSets, setSelectionBox, storageItems}) => {
 	const [render, setRender] = useState(false);
+	const [show, setShow] = useState(false)
 	const scaleValue = useRef(new Animated.Value(0)).current;
+	
 	
 	useEffect(() => {
 		if (render) {
@@ -25,8 +27,9 @@ const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSe
 				friction: 6,
 				useNativeDriver: true,
 				toValue: 1
-			}).start()
+			}).start(({finished}) => setShow(true) )
 		} else {
+			setShow(false)
 			Animated.spring(scaleValue, {
 				friction: 6,
 				useNativeDriver: true,
@@ -43,24 +46,26 @@ const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSe
 				<Text style={[styles.addButtonText]}>+</Text>
 			</View>
 		</AnimatedTouchableNativeFeedback> : null}
-		{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addSecondary, {transform: [{scale: scaleValue}]}]}
+		{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addSecondary, {transform: [{scale: !show ? scaleValue : 1}]}]}
 			onPress={addLocalStorageItems}
 			onLongPress={AddMultiple}>
 			<Icon name="create-outline" size={24} />
 		</AnimatedTouchableOpacity> : null}
-		{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addTertiary, {transform: [{scale: scaleValue}]}]}
-			onPress={() => {
+		{!selectionBox ? <AnimatedTouchableOpacity style={[styles.addTertiary, {transform: [{scale: !show ? scaleValue : 1}]}]}
+			onPress={async() => {
 			if (storageItems.length <= 1) {
 				alert("You don't have enough card sets to use the merge feature");
 				setRender(false);
 			} else {
+				setRender(false)
 				setSelectionBox(true); 
 			}
+			//forceUpdate();
 		}}>
 			<Icon name="git-network-outline" size={24} />
 		</AnimatedTouchableOpacity> : null}
 		{selectionBox ? <TouchableNativeFeedback
-		background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 50)}
+		background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 35)}
 		onPress={mergeCardSets}>
 		<View style={styles.addButton}>
 			<Icon name="git-network-outline" size={40} />
