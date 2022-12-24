@@ -1,9 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
-import { Animated, View, TouchableWithoutFeedback, Dimensions, Text } from 'react-native';
+import { TouchableOpacity, Animated, View, TouchableWithoutFeedback, Dimensions, Text } from 'react-native';
 
 const fullWidth = Dimensions.get('window').width;
 const fullHeight = Dimensions.get('window').height;
 
+
+const OptionButton = (props) => {
+	return (
+		<View>
+			<TouchableOpacity>
+				<Text style={{color: 'white'}}>Play</Text>
+				<Text style={{color: 'white'}}>Play</Text>
+			</TouchableOpacity>
+		</View>
+	);
+}
 
 
 const InsideOverlay = ({data, visible, outsideTouch}) => {
@@ -33,6 +44,9 @@ const InsideOverlay = ({data, visible, outsideTouch}) => {
 		}}>
 			<Text style={{color: 'white', fontSize: 36}}>{data[0].title}</Text>
 			<Text style={{color: 'white', fontSize: 18}}>{data[0].description}</Text>
+			<View style={{flexDirection: 'row'}}>
+				
+			</View>
 		</Animated.View>
 	);
 }

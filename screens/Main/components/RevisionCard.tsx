@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react';
-import { StyleSheet, StatusBar, Dimensions, View, TouchableWithoutFeedback, TouchableOpacity, Text, Alert } from 'react-native';
+import { Animated, StyleSheet, StatusBar, Dimensions, View, TouchableWithoutFeedback, TouchableOpacity, Text, Alert } from 'react-native';
 import { isMergable } from '../MainFunctions'
 import { CheckBox } from './MainComponents'
 import { auth, db } from '../../../firebase'
-import Animated, {
+/*import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-} from 'react-native-reanimated';
+} from 'react-native-reanimated';*/
 
 const setLastAttempted = () => {
 	const date = new Date();
@@ -63,22 +63,22 @@ export const RevisionCard = (props) => {
 	let {data, index, selectionBox, searchText, merge, mergeItems} = props;
 	const [value, setValue] = useState(mergeItems.includes(index));
 	const [renderComponent, setRenderComponent] = useState(true);
-	const scaleValue = useSharedValue(0);
+	const scaleValue = useRef(new Animated.Value(0)).current;
 	
 	const animation = () => {
-		scaleValue.value = 1
-		setTimeout(() => {
-			scaleValue.value = 0
-		}, 3400)
+		Animated.timing(scaleValue, {
+			duration: 300,
+			toValue: 1,
+			useNativeDriver: true
+		}).start()
+		setTimeout(() => { Animated.timing(scaleValue, {
+			duration: 300,
+			toValue: 0,
+			useNativeDriver: true
+		}).start()}, 3400);
 	}
 	
-	const scaleValueStyle = useAnimatedStyle(() => {
-		return {
-			transform: [{scale: withTiming(scaleValue.value, {
-				duration: 400
-			})}]
-		}
-	});
+	
 	
 	const QuestionInfo = () => {
 		
@@ -110,12 +110,12 @@ export const RevisionCard = (props) => {
 				<TouchableWithoutFeedback style={{flex: 1}}
 				onPress={animation}>
 					<View style={{flex: 1, flexDirection: 'row', opacity: 0.6}}>
-						<View style={{backgroundColor: 'green', height: 8, width: `${(correct / total) * 100}%` }} />
-						<View style={{backgroundColor: '#af0000', height: 8, width: `${(incorrect / total) * 100}%` }} />
-						<View style={{backgroundColor: '#565656', height: 8, width: `${(notAnswered / total) * 100}%`}} />
+						<View style={{backgroundColor: 'green', height: 9, width: `${(correct / total) * 100}%` }} />
+						<View style={{backgroundColor: '#af0000', height: 9, width: `${(incorrect / total) * 100}%` }} />
+						<View style={{backgroundColor: '#565656', height: 9, width: `${(notAnswered / total) * 100}%`}} />
 					</View>
 				</TouchableWithoutFeedback>
-				<BoxInfo styled={scaleValueStyle} correct={correct} incorrect={incorrect} notAnswered={notAnswered} />
+				<BoxInfo styled={{transform: [{scale: scaleValue}]}} correct={correct} incorrect={incorrect} notAnswered={notAnswered} />
 			</View>
 		);
 	}

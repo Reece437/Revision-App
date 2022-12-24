@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TouchableWithoutFeedback, Alert, Dimensions, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, FlatList } from 'react-native';
+import { Animated, TouchableWithoutFeedback, Alert, Dimensions, TextInput, TouchableNativeFeedback, ScrollView, StyleSheet, Text, View, TouchableOpacity, StatusBar, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SearchBar, CheckBox, BottomBar } from './components/MainComponents';
 import {
@@ -13,78 +13,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Overlay } from './components/Overlay';
 import { RevisionCard } from './components/RevisionCard';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming
-} from 'react-native-reanimated';
+import { AddButton } from './components/AddButton';
 
 
-const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSets, setSelectionBox, storageItems}) => {
-	const [render, setRender] = useState(false);
-	const scaleValue = useSharedValue(0)
-	const scaleValueStyle = useAnimatedStyle(() => {
-		return {
-			transform: [{scale: withSpring(scaleValue.value, {
-				mass: 0.8
-			})}]
-		}
-	})
-	
-	
-	useEffect(() => {
-		if (render) {
-			scaleValue.value = 1
-		} else {
-			scaleValue.value = 0
-		}
-	}, [render]);
-	
-	return (
-		<>
-		{!selectionBox ? <TouchableNativeFeedback background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 35)}
-			onPress={() => setRender(!render)}>
-			<View style={styles.addButton}>
-				<Text style={[styles.addButtonText]}>+</Text>
-			</View>
-		</TouchableNativeFeedback> : null}
-		{!selectionBox ? <Animated.View style={[{zIndex: 11}, styles.addSecondary, scaleValueStyle]}>
-			<TouchableOpacity
-				onPress={addLocalStorageItems}
-				onLongPress={AddMultiple}>
-				<Icon name="create-outline" size={24} />
-			</TouchableOpacity> 
-		</Animated.View>: null}
-		{!selectionBox ? <Animated.View style={[{zIndex: 11}, styles.addTertiary, scaleValueStyle]}>
-			<TouchableOpacity 
-				onPress={() => {
-				if (storageItems.length <= 1) {
-					alert("You don't have enough card sets to use the merge feature");
-					setRender(false);
-				} else {
-					setRender(false)
-					setSelectionBox(true); 
-				}
-				//forceUpdate();
-			}}>
-				<Icon name="git-network-outline" size={24} />
-			</TouchableOpacity>
-		</Animated.View> : null}
-		{selectionBox ? <TouchableNativeFeedback
-		background={TouchableNativeFeedback.Ripple('#a7a7a7', false, 35)}
-		onPress={mergeCardSets}>
-		<View style={styles.addButton}>
-			<Icon name="git-network-outline" size={40} />
-		</View>
-		</TouchableNativeFeedback> : null}
-		</>
-	);
-}
-
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-const AnimatedTouchableNativeFeedback = Animated.createAnimatedComponent(TouchableNativeFeedback);
-	
 export default function App({navigation}) {
 	const [loadText, setLoadText] = useState("Loading.")
 	const [selectionBox, setSelectionBox] = useState(false);
@@ -93,7 +24,7 @@ export default function App({navigation}) {
 	const [storageItems, setStorageItems] = useState();
 	const [visible, setVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
-	
+	const [overlayData, setOverlayData] = useState([])
 	
 	
 	// For debugging purposes only 
