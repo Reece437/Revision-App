@@ -9,24 +9,21 @@ const AnimatedTouchableWithoutFeedback = Animated.createAnimatedComponent(Toucha
 const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSets, setSelectionBox, storageItems}) => {
 	const scaleValue = useRef(new Animated.Value(0)).current;
 	const [render, setRender] = useState(false);
-	const [show, setShow] = useState(false)
 	
 	const animation = (value, onFinish) => {
 		Animated.spring(scaleValue, {
 			toValue: value,
 			friction: 6,
 			useNativeDriver: true
-		}).start(({finished}) => setShow(onFinish));
+		}).start();
 	}
 	
 	useEffect(() => {
 		if (render) {
-			setShow(true)
-			animation(1, true)
+			animation(1)
 		} else {
-			animation(0, false)
+			animation(0)
 		}
-		console.log(show)
 	}, [render])
 	
 	return (
@@ -37,17 +34,17 @@ const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSe
 				<Text style={[styles.addButtonText]}>+</Text>
 			</View>
 		</TouchableNativeFeedback> : null}
-		{!selectionBox && show ? <Animated.View style={[styles.addSecondary, {transform: [{scale : scaleValue}]}]}> 
+		{!selectionBox ? <Animated.View style={[styles.addSecondary, {transform: [{scale : scaleValue}]}]}> 
 		<TouchableOpacity 
-			onPress={addLocalStorageItems}
-			onLongPress={AddMultiple}>
+			onPress={render ? addLocalStorageItems : null}
+			onLongPress={render ? AddMultiple : null}>
 			<Icon name="create-outline" size={24} />
 		</TouchableOpacity>
 		</Animated.View> : null}
-		{!selectionBox && show ? <Animated.View style={[styles.addTertiary, {transform: [{scale: scaleValue}]}]}> 
+		{!selectionBox ? <Animated.View style={[styles.addTertiary, {transform: [{scale: scaleValue}]}]}> 
 		<TouchableOpacity 
 				testId="Something"
-				onPress={() => {
+				onPress={render ? () => {
 				if (storageItems.length <= 1) {
 					alert("You don't have enough card sets to use the merge feature");
 					setRender(false);
@@ -55,8 +52,7 @@ const AddButton = ({selectionBox, addLocalStorageItems, AddMultiple, mergeCardSe
 					setRender(false)
 					setSelectionBox(true); 
 				}
-				//forceUpdate();
-			}}>
+			} : null}>
 				<Icon name="git-network-outline" size={24} />
 			</TouchableOpacity> 
 			</Animated.View> : null}

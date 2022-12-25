@@ -221,7 +221,7 @@ export const RevisionCard = (props) => {
 								props.Play()
 							});
 						}}>
-							<Text style={{fontSize: 40, color: 'white'}}>▶</Text>
+							<Text style={{fontSize: 30, color: 'white'}}>▶️</Text>
 						</TouchableOpacity>
 						<TouchableOpacity 
 						style={styles.editButton}
@@ -279,17 +279,17 @@ const styles = StyleSheet.create({
   trash: {
   	position: 'absolute',
   	left: 310,
-  	top: 7,
+  	top: 10,
   },
   playButton: {
   	position: 'absolute',
   	left: 230,
-  	top: -5,
+  	top: 10,
   },
   editButton: {
   	position: 'absolute',
   	left: 270,
-  	top: 7
+  	top: 10
   },
 	addSecondary: {
 		zIndex: 2,

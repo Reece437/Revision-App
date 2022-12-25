@@ -47,6 +47,7 @@ export default function Play({route, navigation}) {
 		setFinished(false);
 		displayContent();
 	}
+	
 	const bigReplace = (html: string) => {
 		if (!html.includes('div')) {
 			html = '<div>' + html + '</div>';

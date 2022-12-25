@@ -10,7 +10,6 @@ import {
 } from './MainFunctions';
 import { auth, db } from '../../firebase';
 import { useFocusEffect } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { Overlay } from './components/Overlay';
 import { RevisionCard } from './components/RevisionCard';
 import { AddButton } from './components/AddButton';
@@ -22,7 +21,7 @@ export default function App({navigation}) {
 	const [mergeItems, setMergeItems] = useState([]);
 	const [noCards, setNoCards] = useState(false);
 	const [storageItems, setStorageItems] = useState();
-	const [visible, setVisible] = useState(false);
+	const [visible, setVisible] = useState(true);
 	const [searchText, setSearchText] = useState("");
 	const [overlayData, setOverlayData] = useState([])
 	
