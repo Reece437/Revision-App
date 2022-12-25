@@ -21,7 +21,7 @@ export default function App({navigation}) {
 	const [mergeItems, setMergeItems] = useState([]);
 	const [noCards, setNoCards] = useState(false);
 	const [storageItems, setStorageItems] = useState();
-	const [visible, setVisible] = useState(true);
+	const [visible, setVisible] = useState(false);
 	const [searchText, setSearchText] = useState("");
 	const [overlayData, setOverlayData] = useState([])
 	
@@ -49,6 +49,7 @@ export default function App({navigation}) {
 		db.collection('users').doc(auth.currentUser?.uid).get().then(doc => {
 			data = doc.data().data
 			setStorageItems(duplicateCheck(data));
+			setOverlayData(data[0])
 		});
 	}
 	
@@ -170,7 +171,52 @@ export default function App({navigation}) {
 	try {
 		return (
 			<View style={styles.container}>
-				{visible ? <Overlay data={storageItems} outsideTouch={() => setVisible(false)} /> : null}
+				{visible ? <Overlay data={overlayData} outsideTouch={() => setVisible(false)}
+				edit={() => {
+					let data = storageItems;
+					const index = storageItems.indexOf(overlayData)
+					data.splice(index, 1);
+					data.unshift(overlayData)
+					db.collection('users').doc(auth.currentUser?.uid).set({data});
+					navigation.navigate('Other', {
+						i: 0,
+						n: data[0].card.length - 1
+					});
+				}}
+				play={() => {
+					let data = storageItems;
+					const index = storageItems.indexOf(overlayData);
+					data.splice(index, 1);
+					data.unshift(overlayData);
+					db.collection('users').doc(auth.currentUser?.uid).set({data});
+					navigation.navigate('Play', {
+						i: 0
+					})
+				}}
+				del={() => {
+					Alert.alert(
+						'Are you sure you want to delete this set?',
+						'Choose one of the following:',
+						[
+							{
+								text: 'Yes, delete',
+								onPress: () => {
+									let data = storageItems
+									const index = storageItems.indexOf(overlayData)
+									data.splice(index, 1);
+									db.collection('users').doc(auth.currentUser?.uid).set({data});
+									setVisible(false)
+									setOverlayData();
+								}
+							},
+							{
+								text: 'No, keep',
+								style: 'cancel'
+							}
+						]
+					)
+				}}
+				/> : null}
 				<View style={{flex: 1}}>
 					{selectionBox ? <TouchableOpacity onPress={() => {setSelectionBox(false); setMergeItems([])}}>
 	  						<Text style={{fontSize: 40, color: 'white', textAlign: 'right', paddingRight: 10}}>&times;</Text>
@@ -200,6 +246,12 @@ export default function App({navigation}) {
 									i: 0,
 									n: data[0].card.length - 1
 								})}
+								More={() => {
+									const index = storageItems.indexOf(item);
+									const data = storageItems;
+									setOverlayData(data[index]);
+									setVisible(true);
+								}}
 	  						/>
 	  					}
 	  					keyExtractor={(item) => storageItems.indexOf(item)}

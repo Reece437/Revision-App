@@ -307,7 +307,8 @@ export default function TempScreen({route, navigation}) {
 			        	style={styles.description}
 			        />
 			        <ScrollView stickyHeaderIndices={[0]}>
-				       	{toolbar ? <Toolbar ref={richText1} /> : <Toolbar ref={richText2} />}
+				       	{toolbar ? <Toolbar ref={richText1} /> : null}
+						{!toolbar ? <Toolbar ref={richText2} /> : null}
 				       	<KeyboardAvoidingView style={{flex: 1}} behavior="position" keyboardVerticalOffset={-50}>
 					       	<Editor ref={richText1} fun={setStorageItems} n={n} placeholder={`Question for Card ${n + 1}`} question={true} data={data} onFocus={() => setToolbar(true)} />
 					       	<Editor ref={richText2} fun={setStorageItems} n={n} placeholder={`Answer for Card ${n + 1}`} style={{borderTopWidth: 0}} question={false} data={data} onFocus={() => setToolbar(false)} />

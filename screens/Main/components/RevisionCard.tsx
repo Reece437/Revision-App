@@ -3,11 +3,7 @@ import { Animated, StyleSheet, StatusBar, Dimensions, View, TouchableWithoutFeed
 import { isMergable } from '../MainFunctions'
 import { CheckBox } from './MainComponents'
 import { auth, db } from '../../../firebase'
-/*import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';*/
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const setLastAttempted = () => {
 	const date = new Date();
@@ -206,7 +202,7 @@ export const RevisionCard = (props) => {
 							)
 							
 						}}>
-							<Text style={{fontSize: 30}}>🗑</Text>
+							<Text style={{fontSize: 24}}>🗑</Text>
 						</TouchableOpacity>
 						<TouchableOpacity 
 						style={styles.playButton}
@@ -221,7 +217,7 @@ export const RevisionCard = (props) => {
 								props.Play()
 							});
 						}}>
-							<Text style={{fontSize: 30, color: 'white'}}>▶️</Text>
+							<Text style={{fontSize: 24, color: 'white'}}>▶️</Text>
 						</TouchableOpacity>
 						<TouchableOpacity 
 						style={styles.editButton}
@@ -235,7 +231,14 @@ export const RevisionCard = (props) => {
 								props.Edit()
 							});
 						}}>
-							<Text style={{fontSize: 30}}>✏️</Text>
+							<Text style={{fontSize: 24}}>✏️</Text>
+						</TouchableOpacity>
+						<TouchableOpacity style={{
+							position: 'absolute',
+							top: 15,
+							left: 332
+						}} onPress={props.More}>
+							<Icon name="ellipsis-vertical" size={25} color="white"/>
 						</TouchableOpacity>
 					</View> : null}
 				</>
@@ -278,7 +281,7 @@ const styles = StyleSheet.create({
   },
   trash: {
   	position: 'absolute',
-  	left: 310,
+  	left: 300,
   	top: 10,
   },
   playButton: {
@@ -288,7 +291,7 @@ const styles = StyleSheet.create({
   },
   editButton: {
   	position: 'absolute',
-  	left: 270,
+  	left: 265,
   	top: 10
   },
 	addSecondary: {
